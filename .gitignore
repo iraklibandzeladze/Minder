@@ -1,0 +1,26 @@
+# OS & Editor
+.DS_Store
+.cursorrules
+.vscode/
+.idea/
+
+# Backend (Laravel)[cite: 4]
+backend/.env
+backend/.env.backup
+backend/.env.*.local
+backend/vendor/[cite: 4]
+backend/storage/*.key
+backend/storage/logs/*
+!backend/storage/logs/.gitkeep
+backend/bootstrap/cache/*.php
+!backend/bootstrap/cache/.gitkeep
+backend/.phpunit.result.cache[cite: 4]
+
+# Frontend (Vite / React)[cite: 3]
+frontend/.env
+frontend/.env.local
+frontend/.env.*.local
+frontend/node_modules/[cite: 3]
+frontend/dist/[cite: 3]
+frontend/dist-ssr/
+frontend/*.local

@@ -1,0 +1,326 @@
+/* Password protect + unlock surfaces */
+
+.pwd-protect {
+  display: grid;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  overflow: hidden;
+}
+
+.pwd-protect.is-on {
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+  background: color-mix(in srgb, var(--accent-soft) 55%, var(--bg));
+}
+
+.pwd-protect-toggle {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin: 0;
+  padding: 10px 12px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pwd-protect-toggle:hover {
+  background: color-mix(in srgb, var(--bg-soft) 70%, transparent);
+}
+
+.pwd-protect-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+}
+
+.pwd-protect.is-on .pwd-protect-icon {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+  background: var(--accent-soft);
+}
+
+.pwd-protect-copy {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.pwd-protect-copy strong {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
+.pwd-protect-copy span {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.pwd-switch {
+  width: 36px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  position: relative;
+  flex-shrink: 0;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.pwd-switch.on {
+  background: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 70%, #000);
+}
+
+.pwd-switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  transition: transform 0.15s ease;
+}
+
+.pwd-switch.on .pwd-switch-thumb {
+  transform: translateX(16px);
+}
+
+.pwd-protect-panel {
+  display: grid;
+  gap: 10px;
+  padding: 0 12px 12px;
+  border-top: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+  padding-top: 12px;
+  margin-top: 0;
+  animation: pwd-panel-in 0.16s ease;
+}
+
+@keyframes pwd-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.pwd-protect-hint {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.pwd-field {
+  display: grid;
+  gap: 5px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.pwd-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.pwd-input-wrap input {
+  width: 100%;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  border-radius: 8px;
+  padding: 9px 36px 9px 11px;
+  color: var(--text);
+  font: inherit;
+  outline: none;
+}
+
+.pwd-input-wrap input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.pwd-visibility {
+  position: absolute;
+  right: 4px;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.pwd-visibility:hover {
+  background: var(--bg-soft);
+  color: var(--text);
+}
+
+.pwd-protect-status {
+  margin: 0;
+  font-size: 0.78rem;
+}
+
+.pwd-protect-status.is-ok {
+  color: var(--paid);
+}
+
+.pwd-protect-status.is-bad {
+  color: var(--danger);
+}
+
+/* Unlock dialog */
+.lock-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(6, 8, 12, 0.78);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  animation: lock-fade-in 0.15s ease;
+}
+
+@keyframes lock-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.lock-dialog {
+  position: relative;
+  z-index: 1;
+  width: min(380px, 100%);
+  display: grid;
+  gap: 16px;
+  padding: 28px 24px 20px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
+  animation: lock-rise 0.18s ease;
+  isolation: isolate;
+}
+
+@keyframes lock-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.lock-dialog-badge {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border));
+}
+
+.lock-dialog-danger .lock-dialog-badge {
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 16%, transparent);
+  border-color: color-mix(in srgb, var(--danger) 30%, var(--border));
+}
+
+.lock-dialog-copy {
+  text-align: center;
+  display: grid;
+  gap: 6px;
+  position: relative;
+  z-index: 1;
+  background: var(--bg-elevated);
+}
+
+.lock-dialog-kicker {
+  margin: 0;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.lock-dialog-copy h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 650;
+  color: var(--text-strong);
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.lock-dialog-hint {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.lock-dialog-error {
+  margin: 0;
+  text-align: center;
+  font-size: 0.88rem;
+}
+
+.lock-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.pwd-input-wrap.has-error input {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger) 18%, transparent);
+}
+
+.locked-gate-blank {
+  min-height: min(60vh, 520px);
+}
+
+.sheet-nav-label-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.sheet-lock-ico {
+  flex-shrink: 0;
+  color: var(--muted);
+  opacity: 0.9;
+}
