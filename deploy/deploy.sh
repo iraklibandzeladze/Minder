@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Ledger deploy — run on the server as `deploy`:
-#   /var/www/ledger/deploy/deploy.sh
+# Minder deploy — run on the server as `deploy`:
+#   /var/www/minder/deploy/deploy.sh
 # Requires passwordless sudo for php-fpm reload (see deploy/README.md).
 set -euo pipefail
 
-APP_DIR=/var/www/ledger
+APP_DIR=/var/www/minder
 PHP_FPM_SERVICE=php8.5-fpm
 
 cd "$APP_DIR"

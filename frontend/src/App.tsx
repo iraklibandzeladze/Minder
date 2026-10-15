@@ -1,6 +1,6 @@
 import { AuthScreen } from '@/components/AuthScreen'
 import { InviteAcceptPage } from '@/components/InviteAcceptPage'
-import { LedgerApp } from '@/components/LedgerApp'
+import { MinderApp } from '@/components/MinderApp'
 import { useMe } from '@/hooks/useAuth'
 import { readInviteTokenFromPath } from '@/hooks/useShares'
 
@@ -24,5 +24,5 @@ export default function App() {
     return <AuthScreen />
   }
 
-  return <LedgerApp user={me.data} />
+  return <MinderApp user={me.data} />
 }

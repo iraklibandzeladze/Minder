@@ -1,12 +1,12 @@
-const sheetKey = (userId: number) => `ledger-active-sheet:${userId}`
-const monthKey = (userId: number) => `ledger-year-month:${userId}`
-const viewKey = (userId: number) => `ledger-active-view:${userId}`
-const sidebarKey = (userId: number) => `ledger-sidebar-collapsed:${userId}`
-const noteKey = (userId: number) => `ledger-active-note:${userId}`
-const notesLimitKey = (userId: number) => `ledger-notes-sidebar-limit:${userId}`
-const sheetsLimitKey = (userId: number) => `ledger-sheets-sidebar-limit:${userId}`
+const sheetKey = (userId: number) => `minder-active-sheet:${userId}`
+const monthKey = (userId: number) => `minder-year-month:${userId}`
+const viewKey = (userId: number) => `minder-active-view:${userId}`
+const sidebarKey = (userId: number) => `minder-sidebar-collapsed:${userId}`
+const noteKey = (userId: number) => `minder-active-note:${userId}`
+const notesLimitKey = (userId: number) => `minder-notes-sidebar-limit:${userId}`
+const sheetsLimitKey = (userId: number) => `minder-sheets-sidebar-limit:${userId}`
 
-export const UI_PREFS_EVENT = 'ledger-ui-prefs'
+export const UI_PREFS_EVENT = 'minder-ui-prefs'
 export const DEFAULT_SIDEBAR_LIST_LIMIT = 5
 export const MIN_SIDEBAR_LIST_LIMIT = 1
 export const MAX_SIDEBAR_LIST_LIMIT = 50

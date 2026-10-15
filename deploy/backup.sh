@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 # Nightly dump of every project DB on this server. Cron (deploy user):
-#   0 3 * * * /var/www/ledger/deploy/backup.sh >> /var/log/db-backup.log 2>&1
+#   0 3 * * * /var/www/minder/deploy/backup.sh >> /var/log/db-backup.log 2>&1
 # Requires ~/.pgpass (chmod 600) with a line per DB:
-#   127.0.0.1:5432:ledger:ledger:<password>
+#   127.0.0.1:5432:minder:minder:<password>
 #   127.0.0.1:5432:pillars:pillars:<password>
 set -euo pipefail
 
 DEST=/var/backups/db
 KEEP_DAYS=14
-DBS=(ledger pillars)
+DBS=(minder pillars)
 
 mkdir -p "$DEST"
 for db in "${DBS[@]}"; do

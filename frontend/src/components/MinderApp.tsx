@@ -51,7 +51,7 @@ function usesMonth(kind: string | undefined): boolean {
   return kind === 'monthly_expenses' || kind === 'table' || kind === 'ledger'
 }
 
-export function LedgerApp({ user }: { user: User }) {
+export function MinderApp({ user }: { user: User }) {
   const [yearMonth, setYearMonthState] = useState(() =>
     readYearMonth(user.id, currentYearMonth()),
   )
@@ -359,7 +359,7 @@ export function LedgerApp({ user }: { user: User }) {
           >
             {sidebarCollapsed ? <PanelLeft size={18} /> : <PanelLeftClose size={18} />}
           </button>
-          <span className="brand">Ledger</span>
+          <span className="brand">Minder</span>
           {mobileLabel && (
             <span className="active-sheet-label mobile-only" title={mobileLabel}>
               {mobileLabel}

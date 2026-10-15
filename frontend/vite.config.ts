@@ -15,9 +15,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
-        name: 'Ledger',
-        short_name: 'Ledger',
-        description: 'პირადი ფინანსური ლეჯერი',
+        name: 'Minder',
+        short_name: 'Minder',
+        description: 'ხარჯები, ცხრილები, ნოუთები და გეგმები ერთ სივრცეში',
         lang: 'ka',
         theme_color: '#0f1216',
         background_color: '#0f1216',

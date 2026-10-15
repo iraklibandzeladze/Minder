@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { ThemeMode } from '@/lib/types'
 
-const STORAGE_KEY = 'ledger-theme'
+const STORAGE_KEY = 'minder-theme'
 
 function readTheme(): ThemeMode {
   const stored = localStorage.getItem(STORAGE_KEY)

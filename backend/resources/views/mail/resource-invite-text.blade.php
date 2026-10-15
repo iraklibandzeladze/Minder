@@ -1,6 +1,6 @@
 მოგესალმები!
 
-{{ $inviterName }} გიწვევს Ledger-ში:
+{{ $inviterName }} გიწვევს Minder-ში:
 {{ $kindLabel }}: „{{ $resourceTitle }}“
 როლი: {{ $roleLabel }}
 

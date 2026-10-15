@@ -54,7 +54,7 @@ export function SettingsView({ userId }: { userId: number }) {
         <div className="profile-section profile-sidebar-prefs-alone">
           <h2>აპლიკაცია</h2>
           <p className="muted profile-hint">
-            დააინსტალირე Ledger მთავარ ეკრანზე / დესკტოპზე.
+            დააინსტალირე Minder მთავარ ეკრანზე / დესკტოპზე.
           </p>
           <PwaInstallButton variant="primary" />
         </div>

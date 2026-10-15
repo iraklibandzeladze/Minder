@@ -56,7 +56,7 @@ const STUDY_COLUMNS: StudyColumn[] = [
   'category',
 ]
 
-const hiddenKey = 'ledger-dict-hidden-columns'
+const hiddenKey = 'minder-dict-hidden-columns'
 
 function readHiddenColumns(): Record<StudyColumn, boolean> {
   const blank: Record<StudyColumn, boolean> = {

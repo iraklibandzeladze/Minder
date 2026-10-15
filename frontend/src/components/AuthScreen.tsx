@@ -51,7 +51,7 @@ export function AuthScreen({
 } = {}) {
   const [mode, setMode] = useState<'login' | 'register'>(initialMode)
   const [name, setName] = useState('')
-  const [email, setEmail] = useState(forcedEmail ?? 'demo@ledger.test')
+  const [email, setEmail] = useState(forcedEmail ?? 'demo@minder.ge')
   const [password, setPassword] = useState(forcedEmail ? '' : 'password')
   const [error, setError] = useState<string | null>(() => consumeSocialAuthError())
   const [socialBusy, setSocialBusy] = useState<SocialProvider | null>(null)
@@ -110,7 +110,7 @@ export function AuthScreen({
         {theme === 'night' ? <Sun size={16} /> : <Moon size={16} />}
       </button>
       <form className="auth-card" onSubmit={onSubmit}>
-        <p className="brand">Ledger</p>
+        <p className="brand">Minder</p>
         <h1>{mode === 'login' ? 'შესვლა' : 'რეგისტრაცია'}</h1>
         <p className="muted">
           {inviteHint ?? 'მოქნილი ცხრილები · ყოველთვიური ხარჯები · კალკულატორი'}
@@ -188,7 +188,7 @@ export function AuthScreen({
 
         <PwaInstallButton variant="card" />
 
-        {!forcedEmail && <p className="hint">დემო: demo@ledger.test / password</p>}
+        {!forcedEmail && <p className="hint">დემო: demo@minder.ge / password</p>}
       </form>
     </div>
   )
