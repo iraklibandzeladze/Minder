@@ -4,23 +4,25 @@
 .vscode/
 .idea/
 
-# Backend (Laravel)[cite: 4]
+# Backend (Laravel)
 backend/.env
 backend/.env.backup
 backend/.env.*.local
-backend/vendor/[cite: 4]
+backend/vendor/
 backend/storage/*.key
 backend/storage/logs/*
 !backend/storage/logs/.gitkeep
 backend/bootstrap/cache/*.php
 !backend/bootstrap/cache/.gitkeep
-backend/.phpunit.result.cache[cite: 4]
+backend/.phpunit.result.cache
+backend/database/*.sqlite
 
-# Frontend (Vite / React)[cite: 3]
+# Frontend (Vite / React)
 frontend/.env
 frontend/.env.local
 frontend/.env.*.local
-frontend/node_modules/[cite: 3]
-frontend/dist/[cite: 3]
+frontend/.env.production
+frontend/node_modules/
+frontend/dist/
 frontend/dist-ssr/
 frontend/*.local
