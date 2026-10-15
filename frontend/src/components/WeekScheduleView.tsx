@@ -47,7 +47,7 @@ const WORKDAYS = [1, 2, 3, 4, 5] as const
 
 type ViewMode = 'week' | 'day'
 const VIEW_MODE_KEY = 'minder-schedule-view'
-const MOBILE_QUERY = '(max-width: 900px)'
+const MOBILE_QUERY = '(max-width: 1100px)'
 
 const HOURS = Array.from(
   { length: (GRID_END_MIN - GRID_START_MIN) / 60 },
@@ -112,7 +112,8 @@ export function WeekScheduleView() {
   // desktop defaults to the week grid. An explicit choice is remembered.
   const isMobile = useMediaQuery(MOBILE_QUERY)
   const [storedMode, setStoredMode] = useState<ViewMode | null>(() => readStoredViewMode())
-  const viewMode: ViewMode = storedMode ?? (isMobile ? 'day' : 'week')
+  // Phone/tablet (incl. landscape): always a single day. The 7-column week grid is unreadable under ~1100px.
+  const viewMode: ViewMode = isMobile ? 'day' : (storedMode ?? 'week')
   const [activeDay, setActiveDay] = useState<number>(() => todayWeekday())
 
   function setViewMode(mode: ViewMode) {
@@ -365,7 +366,7 @@ export function WeekScheduleView() {
           <p className="muted">მუდმივი შაბლონი — იგივე ყოველ კვირას</p>
         </div>
         <div className="week-schedule-actions">
-          <div className="week-view-toggle" role="group" aria-label="ხედი">
+          <div className="week-view-toggle desktop-only" role="group" aria-label="ხედი">
             <button
               type="button"
               className={`btn-icon ${viewMode === 'day' ? 'active' : ''}`}

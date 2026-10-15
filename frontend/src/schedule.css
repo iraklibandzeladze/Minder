@@ -544,14 +544,27 @@
   color: var(--danger);
 }
 
-@media (max-width: 720px) {
+@media (max-width: 1100px) {
+  .week-view-toggle {
+    display: none !important;
+  }
+
+  .week-grid-wrap {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 900px) {
   .week-schedule {
-    padding: 10px;
+    padding: 8px 0 16px;
+    min-width: 0;
+    max-width: 100%;
   }
 
   .week-schedule-head {
     flex-wrap: wrap;
     gap: 8px;
+    padding: 0 8px;
   }
 
   .week-schedule-actions {
@@ -567,6 +580,8 @@
     overflow-x: auto;
     flex-wrap: nowrap;
     scrollbar-width: none;
+    margin: 0;
+    padding: 0 8px;
   }
 
   .week-legend::-webkit-scrollbar {
@@ -578,18 +593,49 @@
     flex-shrink: 0;
   }
 
+  .week-day-nav {
+    margin: 0;
+    padding: 0 4px;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .week-day-tabs {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    overflow: visible;
+    gap: 3px;
+    min-width: 0;
+  }
+
   .week-day-tab {
-    padding: 10px 0;
-    font-size: 0.78rem;
+    min-width: 0;
+    width: 100%;
+    padding: 10px 2px;
+    font-size: 0.7rem;
+    letter-spacing: -0.02em;
+  }
+
+  .week-grid {
+    min-width: 720px;
   }
 
   .week-field-row {
     grid-template-columns: 1fr;
   }
 
+  .week-modal-backdrop {
+    padding: 0;
+    align-items: flex-end;
+  }
+
   .week-modal {
-    max-height: 92svh;
+    width: 100%;
+    max-height: min(92svh, 100%);
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 16px 16px 0 0;
+    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
   }
 }
 

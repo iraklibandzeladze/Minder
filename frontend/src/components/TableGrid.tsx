@@ -487,7 +487,8 @@ export function TableGrid({
                 })
               }}
             >
-              წინა თვიდან
+              <span className="desktop-only">წინა თვიდან</span>
+              <span className="mobile-only">წინა თვე</span>
             </button>
           )}
           <button
@@ -560,8 +561,13 @@ export function TableGrid({
 
       {editOpen && !paymentMode && (
         <p className="payment-setup-hint muted">
-          გადახდის ლოგიკისთვის „რედაქტირება“-ში ერთ სვეტს მიანიჭე როლი{' '}
-          <em>გადასახდელი</em>, მეორეს — <em>გადახდილი</em>. შემდეგ აქ გამოჩნდება ბიუჯეტიც.
+          <span className="desktop-only">
+            გადახდის ლოგიკისთვის „რედაქტირება“-ში ერთ სვეტს მიანიჭე როლი{' '}
+            <em>გადასახდელი</em>, მეორეს — <em>გადახდილი</em>. შემდეგ აქ გამოჩნდება ბიუჯეტიც.
+          </span>
+          <span className="mobile-only">
+            ბიუჯეტისთვის სვეტს მიანიჭე როლი <em>გადასახდელი</em> და <em>გადახდილი</em>.
+          </span>
         </p>
       )}
 
