@@ -48,12 +48,16 @@ export default defineConfig({
       },
       workbox: {
         navigateFallback: '/index.html',
+        // Server-handled paths must never be swallowed by the SPA fallback:
+        // OAuth redirect/callback are full-page navigations to Laravel.
+        navigateFallbackDenylist: [/^\/api(\/|$)/, /^\/sanctum(\/|$)/, /^\/auth(\/|$)/, /^\/up$/],
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         runtimeCaching: [
           {
             urlPattern: ({ url }) =>
               url.pathname.startsWith('/api') ||
-              url.pathname.startsWith('/sanctum'),
+              url.pathname.startsWith('/sanctum') ||
+              url.pathname.startsWith('/auth'),
             handler: 'NetworkOnly',
           },
           {
