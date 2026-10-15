@@ -237,9 +237,86 @@
 }
 
 .week-grid {
+  --week-days: 7;
   display: grid;
-  grid-template-columns: 52px repeat(7, minmax(96px, 1fr));
+  grid-template-columns: 52px repeat(var(--week-days), minmax(96px, 1fr));
   min-width: 780px;
+}
+
+/* Day view: one wide column, no horizontal scroll */
+.week-grid-wrap.is-day .week-grid {
+  min-width: 0;
+  grid-template-columns: 52px minmax(0, 1fr);
+}
+
+.week-grid-wrap.is-day .week-block {
+  left: 6px;
+  right: 6px;
+  padding: 5px 8px;
+}
+
+.week-grid-wrap.is-day .week-block-title {
+  font-size: 0.85rem;
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.week-grid-wrap.is-day .week-block-time {
+  font-size: 0.72rem;
+}
+
+.week-view-toggle {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+}
+
+.week-view-toggle .btn-icon.active {
+  background: var(--bg-soft);
+  color: var(--text-strong);
+}
+
+.week-day-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.week-day-tabs {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.week-day-tab {
+  padding: 8px 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.week-day-tab:hover {
+  background: var(--bg-soft);
+}
+
+.week-day-tab.today {
+  border-color: var(--accent-soft);
+}
+
+.week-day-tab.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #04140f;
 }
 
 .week-day-head {
@@ -472,8 +549,47 @@
     padding: 10px;
   }
 
+  .week-schedule-head {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .week-schedule-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .week-schedule-head p {
+    display: none;
+  }
+
+  .week-legend {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+  }
+
+  .week-legend::-webkit-scrollbar {
+    display: none;
+  }
+
+  .week-legend-item {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .week-day-tab {
+    padding: 10px 0;
+    font-size: 0.78rem;
+  }
+
   .week-field-row {
     grid-template-columns: 1fr;
+  }
+
+  .week-modal {
+    max-height: 92svh;
+    overflow-y: auto;
   }
 }
 

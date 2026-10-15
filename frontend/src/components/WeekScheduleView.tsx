@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Info } from 'lucide-react'
+import { CalendarDays, CalendarRange, ChevronLeft, ChevronRight, Info } from 'lucide-react'
 import { ApiError } from '@/lib/api'
 import {
   useCreateScheduleBlocks,
@@ -45,10 +45,39 @@ type TemplateDraft = {
 const ALL_WEEKDAYS = [1, 2, 3, 4, 5, 6, 7] as const
 const WORKDAYS = [1, 2, 3, 4, 5] as const
 
+type ViewMode = 'week' | 'day'
+const VIEW_MODE_KEY = 'minder-schedule-view'
+const MOBILE_QUERY = '(max-width: 900px)'
+
 const HOURS = Array.from(
   { length: (GRID_END_MIN - GRID_START_MIN) / 60 },
   (_, i) => GRID_START_MIN / 60 + i,
 )
+
+/** ISO weekday for today: 1 = Monday … 7 = Sunday. */
+function todayWeekday(): number {
+  const d = new Date().getDay()
+  return d === 0 ? 7 : d
+}
+
+function useMediaQuery(query: string): boolean {
+  const [matches, setMatches] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia(query).matches,
+  )
+  useEffect(() => {
+    const mql = window.matchMedia(query)
+    const onChange = (e: MediaQueryListEvent) => setMatches(e.matches)
+    setMatches(mql.matches)
+    mql.addEventListener('change', onChange)
+    return () => mql.removeEventListener('change', onChange)
+  }, [query])
+  return matches
+}
+
+function readStoredViewMode(): ViewMode | null {
+  const v = localStorage.getItem(VIEW_MODE_KEY)
+  return v === 'week' || v === 'day' ? v : null
+}
 
 function emptyDraft(weekday: number, startMin: number, templateId: number): Draft {
   return {
@@ -78,6 +107,22 @@ export function WeekScheduleView() {
   const [templateError, setTemplateError] = useState<string | null>(null)
   const [statsOpen, setStatsOpen] = useState(false)
   const statsWrapRef = useRef<HTMLDivElement>(null)
+
+  // Mobile defaults to a single day (the whole week in one viewport is unreadable);
+  // desktop defaults to the week grid. An explicit choice is remembered.
+  const isMobile = useMediaQuery(MOBILE_QUERY)
+  const [storedMode, setStoredMode] = useState<ViewMode | null>(() => readStoredViewMode())
+  const viewMode: ViewMode = storedMode ?? (isMobile ? 'day' : 'week')
+  const [activeDay, setActiveDay] = useState<number>(() => todayWeekday())
+
+  function setViewMode(mode: ViewMode) {
+    setStoredMode(mode)
+    localStorage.setItem(VIEW_MODE_KEY, mode)
+  }
+
+  function shiftDay(delta: number) {
+    setActiveDay((d) => ((d - 1 + delta + 7) % 7) + 1)
+  }
 
   useEffect(() => {
     if (!statsOpen) return
@@ -133,6 +178,8 @@ export function WeekScheduleView() {
   const gridHeight = ((GRID_END_MIN - GRID_START_MIN) / 60) * PX_PER_HOUR
   const saving = createBlocks.isPending || updateBlock.isPending
   const defaultTemplateId = templates[0]?.id ?? 0
+  const visibleDays: readonly number[] = viewMode === 'day' ? [activeDay] : ALL_WEEKDAYS
+  const newBlockDay = viewMode === 'day' ? activeDay : 1
 
   function openCreate(weekday: number, clientY: number, columnTop: number) {
     if (!defaultTemplateId) return
@@ -318,6 +365,26 @@ export function WeekScheduleView() {
           <p className="muted">მუდმივი შაბლონი — იგივე ყოველ კვირას</p>
         </div>
         <div className="week-schedule-actions">
+          <div className="week-view-toggle" role="group" aria-label="ხედი">
+            <button
+              type="button"
+              className={`btn-icon ${viewMode === 'day' ? 'active' : ''}`}
+              title="დღის ხედი"
+              aria-pressed={viewMode === 'day'}
+              onClick={() => setViewMode('day')}
+            >
+              <CalendarDays size={16} />
+            </button>
+            <button
+              type="button"
+              className={`btn-icon ${viewMode === 'week' ? 'active' : ''}`}
+              title="კვირის ხედი"
+              aria-pressed={viewMode === 'week'}
+              onClick={() => setViewMode('week')}
+            >
+              <CalendarRange size={16} />
+            </button>
+          </div>
           <button
             type="button"
             className="btn-ghost"
@@ -333,12 +400,51 @@ export function WeekScheduleView() {
             type="button"
             className="btn-primary"
             disabled={!defaultTemplateId}
-            onClick={() => setDraft(emptyDraft(1, 9 * 60, defaultTemplateId))}
+            onClick={() => setDraft(emptyDraft(newBlockDay, 9 * 60, defaultTemplateId))}
           >
             + ბლოკი
           </button>
         </div>
       </div>
+
+      {viewMode === 'day' && (
+        <div className="week-day-nav">
+          <button
+            type="button"
+            className="btn-icon"
+            aria-label="წინა დღე"
+            onClick={() => shiftDay(-1)}
+          >
+            <ChevronLeft size={16} />
+          </button>
+          <div className="week-day-tabs" role="tablist">
+            {WEEKDAY_LABELS.map((label, i) => {
+              const day = i + 1
+              const isToday = day === todayWeekday()
+              return (
+                <button
+                  key={day}
+                  type="button"
+                  role="tab"
+                  aria-selected={day === activeDay}
+                  className={`week-day-tab ${day === activeDay ? 'active' : ''} ${isToday ? 'today' : ''}`}
+                  onClick={() => setActiveDay(day)}
+                >
+                  {label}
+                </button>
+              )
+            })}
+          </div>
+          <button
+            type="button"
+            className="btn-icon"
+            aria-label="შემდეგი დღე"
+            onClick={() => shiftDay(1)}
+          >
+            <ChevronRight size={16} />
+          </button>
+        </div>
+      )}
 
       <div className="week-legend">
         {templates.map((t) => (
@@ -358,8 +464,8 @@ export function WeekScheduleView() {
       {blocksQuery.isLoading || templatesQuery.isLoading ? (
         <p className="muted">იტვირთება…</p>
       ) : (
-        <div className="week-grid-wrap">
-          <div className="week-grid">
+        <div className={`week-grid-wrap ${viewMode === 'day' ? 'is-day' : ''}`}>
+          <div className="week-grid" style={{ ['--week-days' as string]: visibleDays.length }}>
             <div className="week-time-col">
               <div className="week-day-head" />
               <div className="week-time-rail" style={{ height: gridHeight }}>
@@ -375,8 +481,8 @@ export function WeekScheduleView() {
               </div>
             </div>
 
-            {WEEKDAY_LABELS.map((label, index) => {
-              const weekday = index + 1
+            {visibleDays.map((weekday) => {
+              const label = WEEKDAY_LABELS[weekday - 1]
               const daySegments = segments.filter((s) => s.weekday === weekday)
               return (
                 <div key={weekday} className="week-day-col">
@@ -384,7 +490,15 @@ export function WeekScheduleView() {
                   <div
                     className="week-day-body"
                     style={{ height: gridHeight }}
+                    // Week grid keeps double-click; day view (mostly touch) opens on a single tap
+                    // of empty space — double-tap would trigger browser zoom on mobile.
                     onDoubleClick={(e) => {
+                      if (viewMode === 'day') return
+                      const rect = e.currentTarget.getBoundingClientRect()
+                      openCreate(weekday, e.clientY, rect.top)
+                    }}
+                    onClick={(e) => {
+                      if (viewMode !== 'day' || e.target !== e.currentTarget) return
                       const rect = e.currentTarget.getBoundingClientRect()
                       openCreate(weekday, e.clientY, rect.top)
                     }}
@@ -434,7 +548,11 @@ export function WeekScheduleView() {
               )
             })}
           </div>
-          <p className="muted week-hint">დაბლოკვის დასამატებლად ორჯერ დააკლიკე დღის სვეტს</p>
+          <p className="muted week-hint">
+            {viewMode === 'day'
+              ? 'ბლოკის დასამატებლად დააჭირე ცარიელ ადგილს'
+              : 'ბლოკის დასამატებლად ორჯერ დააკლიკე დღის სვეტს'}
+          </p>
         </div>
       )}
 
