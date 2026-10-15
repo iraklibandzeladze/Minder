@@ -19,6 +19,8 @@ class AdminUserResource extends JsonResource
             'plan' => $this->plan,
             'blocked_at' => $this->blocked_at?->toIso8601String(),
             'is_blocked' => $this->isBlocked(),
+            'pro_requested_at' => $this->hasPendingProRequest() ? $this->pro_requested_at?->toIso8601String() : null,
+            'pro_request_note' => $this->hasPendingProRequest() ? $this->pro_request_note : null,
             'sheets_count' => (int) ($this->sheets_count ?? 0),
             'notes_count' => (int) ($this->notes_count ?? 0),
             'created_at' => $this->created_at?->toIso8601String(),

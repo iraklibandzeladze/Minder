@@ -21,6 +21,7 @@ class UserResource extends JsonResource
             'platform_role' => $this->platform_role ?? User::ROLE_USER,
             'plan' => $this->plan ?? 'free',
             'is_admin' => $this->isAdmin(),
+            'pro_requested_at' => $this->hasPendingProRequest() ? $this->pro_requested_at?->toIso8601String() : null,
             'limits' => PlanLimits::for($this->resource),
         ];
     }

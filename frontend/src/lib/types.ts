@@ -36,6 +36,8 @@ export interface User {
   platform_role: PlatformRole
   plan: UserPlan
   is_admin: boolean
+  /** Set while a Pro upgrade request awaits admin review. */
+  pro_requested_at: string | null
   limits: PlanLimitsInfo
 }
 
@@ -47,6 +49,8 @@ export interface AdminUser {
   plan: UserPlan
   blocked_at: string | null
   is_blocked: boolean
+  pro_requested_at: string | null
+  pro_request_note: string | null
   sheets_count: number
   notes_count: number
   created_at: string | null
@@ -56,6 +60,7 @@ export interface AdminStats {
   users: number
   blocked: number
   pro: number
+  pending_pro: number
   admins: number
   sheets: number
   notes: number

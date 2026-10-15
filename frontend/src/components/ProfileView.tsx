@@ -1,7 +1,154 @@
 import { useEffect, useState, type FormEvent } from 'react'
+import { Check, Clock, Crown } from 'lucide-react'
 import { ApiError } from '@/lib/api'
-import { useLogout, useUpdateProfile } from '@/hooks/useAuth'
+import { useCancelProRequest, useLogout, useRequestPro, useUpdateProfile } from '@/hooks/useAuth'
 import type { User } from '@/lib/types'
+
+function apiMessage(err: unknown, fallback: string): string {
+  if (err instanceof ApiError) {
+    const body = err.body as { message?: string; errors?: Record<string, string[]> }
+    return body.message ?? Object.values(body.errors ?? {})[0]?.[0] ?? fallback
+  }
+  return 'ქსელის შეცდომა'
+}
+
+function usage(used: number, max: number | null): string {
+  return max == null ? `${used} / ∞` : `${used} / ${max}`
+}
+
+const PRO_PERKS = [
+  'ულიმიტო ცხრილები, ნოუთები და სიტყვები',
+  'ცხრილების და ნოუთების გაზიარება სხვებთან',
+  'პაროლით დაცვა',
+]
+
+function PlanCard({ user }: { user: User }) {
+  const requestPro = useRequestPro()
+  const cancelRequest = useCancelProRequest()
+  const [note, setNote] = useState('')
+  const [open, setOpen] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const isPro = user.plan === 'pro' || user.is_admin
+  const pending = user.pro_requested_at != null
+  const limits = user.limits
+
+  async function submit() {
+    setError(null)
+    try {
+      await requestPro.mutateAsync({ note: note.trim() || undefined })
+      setOpen(false)
+      setNote('')
+    } catch (err) {
+      setError(apiMessage(err, 'მოთხოვნა ვერ გაიგზავნა'))
+    }
+  }
+
+  async function cancel() {
+    setError(null)
+    try {
+      await cancelRequest.mutateAsync()
+    } catch (err) {
+      setError(apiMessage(err, 'გაუქმება ვერ მოხერხდა'))
+    }
+  }
+
+  return (
+    <section className={`plan-card ${isPro ? 'is-pro' : ''}`}>
+      <div className="plan-card-head">
+        <div className="plan-card-title">
+          <Crown size={16} />
+          <strong>{isPro ? 'Pro' : 'უფასო გეგმა'}</strong>
+          {user.is_admin && <span className="muted">· ადმინი</span>}
+        </div>
+        {!isPro && !pending && (
+          <button type="button" className="btn-primary" onClick={() => setOpen((v) => !v)}>
+            Pro-ზე გადასვლა
+          </button>
+        )}
+      </div>
+
+      <ul className="plan-usage">
+        <li>
+          <span className="muted">ცხრილები</span>
+          <strong>{usage(limits.sheets_used, limits.max_sheets)}</strong>
+        </li>
+        <li>
+          <span className="muted">ნოუთები</span>
+          <strong>{usage(limits.notes_used, limits.max_notes)}</strong>
+        </li>
+        <li>
+          <span className="muted">სიტყვები</span>
+          <strong>{usage(limits.words_used, limits.max_words)}</strong>
+        </li>
+      </ul>
+
+      {isPro ? (
+        <ul className="plan-perks">
+          {PRO_PERKS.map((p) => (
+            <li key={p}>
+              <Check size={14} /> {p}
+            </li>
+          ))}
+        </ul>
+      ) : pending ? (
+        <div className="plan-pending">
+          <p>
+            <Clock size={14} /> მოთხოვნა გაგზავნილია — ელოდება ადმინის დადასტურებას. Pro-ს
+            გააქტიურებისას ელფოსტაზე შეტყობინება მოგივა.
+          </p>
+          <button
+            type="button"
+            className="btn-ghost"
+            disabled={cancelRequest.isPending}
+            onClick={() => void cancel()}
+          >
+            მოთხოვნის გაუქმება
+          </button>
+        </div>
+      ) : (
+        <>
+          <ul className="plan-perks muted">
+            {PRO_PERKS.map((p) => (
+              <li key={p}>
+                <Check size={14} /> {p}
+              </li>
+            ))}
+          </ul>
+          {open && (
+            <div className="plan-request-form">
+              <label>
+                შეტყობინება ადმინისთვის (არასავალდებულო)
+                <textarea
+                  rows={2}
+                  value={note}
+                  maxLength={500}
+                  onChange={(e) => setNote(e.target.value)}
+                  placeholder="მაგ. რისთვის გჭირდება Pro"
+                />
+              </label>
+              <div className="plan-request-actions">
+                <button type="button" className="btn-ghost" onClick={() => setOpen(false)}>
+                  გაუქმება
+                </button>
+                <button
+                  type="button"
+                  className="btn-primary"
+                  disabled={requestPro.isPending}
+                  onClick={() => void submit()}
+                >
+                  {requestPro.isPending ? 'იგზავნება…' : 'მოთხოვნის გაგზავნა'}
+                </button>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
+      {error && <p className="error">{error}</p>}
+    </section>
+  )
+}
 
 export function ProfileView({ user }: { user: User }) {
   const [name, setName] = useState(user.name)
@@ -71,12 +218,10 @@ export function ProfileView({ user }: { user: User }) {
           <div>
             <h1>პროფილი</h1>
             <p className="muted">ანგარიშის მონაცემები და პაროლი</p>
-            <p className="profile-plan-badge">
-              გეგმა: <strong>{user.limits?.label ?? (user.plan === 'pro' ? 'Pro' : 'უფასო')}</strong>
-              {user.is_admin && <span className="muted"> · ადმინი</span>}
-            </p>
           </div>
         </header>
+
+        <PlanCard user={user} />
 
         <form className="profile-form" onSubmit={onSubmit}>
           <label>

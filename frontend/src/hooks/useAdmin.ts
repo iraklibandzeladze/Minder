@@ -16,13 +16,14 @@ export function useAdminStats(enabled: boolean) {
   })
 }
 
-export function useAdminUsers(enabled: boolean, q: string) {
+export function useAdminUsers(enabled: boolean, q: string, pendingOnly = false) {
   const params = new URLSearchParams()
   if (q.trim()) params.set('q', q.trim())
+  if (pendingOnly) params.set('pending', '1')
   const qs = params.toString()
 
   return useQuery({
-    queryKey: ['admin', 'users', q],
+    queryKey: ['admin', 'users', q, pendingOnly],
     queryFn: async () => {
       const payload = await api<PaginatedUsers>(`/api/admin/users${qs ? `?${qs}` : ''}`)
       return unwrapData(payload)
@@ -39,6 +40,7 @@ export function useUpdateAdminUser() {
       plan?: UserPlan
       platform_role?: PlatformRole
       blocked?: boolean
+      reject_pro_request?: boolean
     }) => {
       const { id, ...body } = input
       return unwrapData(

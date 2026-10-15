@@ -77,6 +77,18 @@ export function MinderApp({ user }: { user: User }) {
   const lockSheet = useLockSheet()
   const { theme, toggleTheme } = useTheme()
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const view = params.get('view')
+    if (view === 'admin' && user.is_admin) {
+      setActiveViewState('admin')
+      writeActiveView(user.id, 'admin')
+      params.delete('view')
+      const qs = params.toString()
+      window.history.replaceState({}, '', window.location.pathname + (qs ? `?${qs}` : ''))
+    }
+  }, [user.id, user.is_admin])
+
   const sheetList = sheets.data ?? []
   const noteList = notes.data ?? []
   const showingSchedule = activeView === 'schedule'

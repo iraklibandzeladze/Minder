@@ -25,6 +25,8 @@ class User extends Authenticatable
         'email_verified_at',
         'platform_role',
         'plan',
+        'pro_requested_at',
+        'pro_request_note',
         'blocked_at',
     ];
 
@@ -38,8 +40,19 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'pro_requested_at' => 'datetime',
             'blocked_at' => 'datetime',
         ];
+    }
+
+    public function isPro(): bool
+    {
+        return $this->plan === 'pro' || $this->isAdmin();
+    }
+
+    public function hasPendingProRequest(): bool
+    {
+        return $this->pro_requested_at !== null && ! $this->isPro();
     }
 
     public function isAdmin(): bool

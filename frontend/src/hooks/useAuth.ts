@@ -98,6 +98,35 @@ export function useLogout() {
   })
 }
 
+export function useRequestPro() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (input: { note?: string }) => {
+      await csrf()
+      return api<User>('/api/me/pro-request', {
+        method: 'POST',
+        body: JSON.stringify(input),
+      })
+    },
+    onSuccess: (user) => {
+      queryClient.setQueryData(['me'], user)
+    },
+  })
+}
+
+export function useCancelProRequest() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async () => {
+      await csrf()
+      return api<User>('/api/me/pro-request', { method: 'DELETE' })
+    },
+    onSuccess: (user) => {
+      queryClient.setQueryData(['me'], user)
+    },
+  })
+}
+
 export function useUpdateProfile() {
   const queryClient = useQueryClient()
   return useMutation({

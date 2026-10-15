@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\CustomColumnController;
 use App\Http\Controllers\Api\MonthController;
 use App\Http\Controllers\Api\NoteController;
 use App\Http\Controllers\Api\NoteItemController;
+use App\Http\Controllers\Api\ProRequestController;
 use App\Http\Controllers\Api\QuickEntryController;
 use App\Http\Controllers\Api\RecurringTemplateController;
 use App\Http\Controllers\Api\ResourceShareController;
@@ -28,6 +29,8 @@ Route::middleware(['auth:sanctum', 'not.blocked'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
     Route::patch('/me', [AuthController::class, 'update']);
+    Route::post('/me/pro-request', [ProRequestController::class, 'store']);
+    Route::delete('/me/pro-request', [ProRequestController::class, 'destroy']);
 
     Route::middleware('platform.admin')->prefix('admin')->group(function () {
         Route::get('/stats', [AdminUserController::class, 'stats']);
