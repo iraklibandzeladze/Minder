@@ -20,6 +20,7 @@ export interface PlanLimitsInfo {
   max_words: number | null
   can_share: boolean
   can_password_protect: boolean
+  can_dictionary: boolean
   sheets_used: number
   notes_used: number
   words_used: number

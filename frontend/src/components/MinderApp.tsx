@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import {
   CalendarDays,
   ChevronLeft,
+  Crown,
   ChevronRight,
   Languages,
   LogOut,
@@ -270,6 +271,8 @@ export function MinderApp({ user }: { user: User }) {
     setSheetsOpen(false)
   }
 
+  const canDictionary = user.limits.can_dictionary === true
+
   const isLedger = activeSheet?.kind === 'ledger'
   const showMonthNav =
     showingSheet && !sheetNeedsUnlock && (usesMonth(activeSheet?.kind) || !activeSheet)
@@ -332,6 +335,11 @@ export function MinderApp({ user }: { user: User }) {
             >
               <Languages size={18} />
               <span>ლექსიკონი</span>
+              {!canDictionary && (
+                <span className="sidebar-pro-badge" title="Pro">
+                  <Crown size={12} />
+                </span>
+              )}
             </button>
           </div>
 
@@ -438,7 +446,16 @@ export function MinderApp({ user }: { user: User }) {
             </div>
           )}
           {showingSchedule && <WeekScheduleView />}
-          {showingDictionary && <DictionaryView />}
+          {showingDictionary && canDictionary && <DictionaryView />}
+          {showingDictionary && !canDictionary && (
+            <div className="empty-sheets pro-gate">
+              <p>ლექსიკონი Pro გეგმაზეა.</p>
+              <p className="muted">პროფილიდან აირჩიე Pro — ადმინი დაადასტურებს და ლექსიკონი გაიხსნება.</p>
+              <button type="button" className="btn-primary" onClick={openProfile}>
+                გეგმის ნახვა
+              </button>
+            </div>
+          )}
           {showingNotes && noteNeedsUnlock && <div className="locked-gate-blank" aria-hidden />}
           {showingNotes && !noteNeedsUnlock && activeNoteId != null && (
             <NotesView noteId={activeNoteId} />

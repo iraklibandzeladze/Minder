@@ -431,6 +431,17 @@ textarea {
   margin: 0;
 }
 
+.pro-gate .btn-primary {
+  justify-self: center;
+  margin-top: 8px;
+}
+
+.sidebar-pro-badge {
+  margin-left: auto;
+  display: inline-flex;
+  color: var(--muted);
+}
+
 .grid-toolbar {
   display: flex;
   align-items: center;

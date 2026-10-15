@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\WordCategory;
+use App\Support\PlanLimits;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -14,6 +15,7 @@ class WordCategoryController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
+        PlanLimits::assertCanUseDictionary($user);
 
         $categories = $user->wordCategories()->orderBy('name')->get(['id', 'name']);
 
@@ -24,6 +26,7 @@ class WordCategoryController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
+        PlanLimits::assertCanUseDictionary($user);
         $data = $request->validate([
             'name' => ['required', 'string', 'max:80'],
         ]);
@@ -47,6 +50,7 @@ class WordCategoryController extends Controller
     public function destroy(WordCategory $wordCategory): JsonResponse
     {
         $this->authorize('delete', $wordCategory);
+        PlanLimits::assertCanUseDictionary($request->user());
         $wordCategory->delete();
 
         return response()->json(['ok' => true]);

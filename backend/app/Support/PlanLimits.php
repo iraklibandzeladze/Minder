@@ -16,6 +16,7 @@ final class PlanLimits
      *     max_words: int|null,
      *     can_share: bool,
      *     can_password_protect: bool,
+     *     can_dictionary: bool,
      *     sheets_used: int,
      *     notes_used: int,
      *     words_used: int,
@@ -34,6 +35,7 @@ final class PlanLimits
             'max_words' => $definition['max_words'] ?? null,
             'can_share' => (bool) ($definition['can_share'] ?? false),
             'can_password_protect' => (bool) ($definition['can_password_protect'] ?? false),
+            'can_dictionary' => (bool) ($definition['can_dictionary'] ?? false),
             'sheets_used' => $user->sheets()->count(),
             'notes_used' => $user->notes()->count(),
             'words_used' => $user->words()->count(),
@@ -64,8 +66,16 @@ final class PlanLimits
         }
     }
 
+    public static function assertCanUseDictionary(User $user): void
+    {
+        if (! self::for($user)['can_dictionary']) {
+            throw new HttpException(403, 'ლექსიკონი ხელმისაწვდომია მხოლოდ Pro გეგმაზე.');
+        }
+    }
+
     public static function assertCanCreateWord(User $user): void
     {
+        self::assertCanUseDictionary($user);
         $limits = self::for($user);
         $max = $limits['max_words'];
         if ($max === null) {

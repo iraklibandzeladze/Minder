@@ -19,6 +19,7 @@ class WordController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
+        PlanLimits::assertCanUseDictionary($user);
 
         $filters = [
             'english_word' => trim((string) $request->query('english', '')),
@@ -78,6 +79,7 @@ class WordController extends Controller
     public function update(UpsertWordRequest $request, Word $word): WordResource
     {
         $this->authorize('update', $word);
+        PlanLimits::assertCanUseDictionary($request->user());
         $word->update($request->safe()->except(['category_ids']));
         $this->syncCategories($request->user(), $word, $request->validated('category_ids') ?? []);
         $word->load('categories');
@@ -88,6 +90,7 @@ class WordController extends Controller
     public function destroy(Word $word): JsonResponse
     {
         $this->authorize('delete', $word);
+        PlanLimits::assertCanUseDictionary($request->user());
         $word->delete();
 
         return response()->json(['ok' => true]);

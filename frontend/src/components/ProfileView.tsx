@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { Check, Clock, Crown } from 'lucide-react'
+import { Check, Clock, Crown, Minus } from 'lucide-react'
 import { ApiError } from '@/lib/api'
 import { useCancelProRequest, useLogout, useRequestPro, useUpdateProfile } from '@/hooks/useAuth'
 import type { User } from '@/lib/types'
@@ -16,106 +16,131 @@ function usage(used: number, max: number | null): string {
   return max == null ? `${used} / ∞` : `${used} / ${max}`
 }
 
-const PRO_PERKS = [
-  'ულიმიტო ცხრილები, ნოუთები და სიტყვები',
-  'ცხრილების და ნოუთების გაზიარება სხვებთან',
-  'პაროლით დაცვა',
+const PLAN_FEATURES: { label: string; free: string; pro: string; freeOn: boolean }[] = [
+  { label: 'ცხრილები', free: '5', pro: 'ულიმიტო', freeOn: true },
+  { label: 'ნოუთები', free: '15', pro: 'ულიმიტო', freeOn: true },
+  { label: 'გაზიარება', free: 'არა', pro: 'კი', freeOn: false },
+  { label: 'პაროლით დაცვა', free: 'არა', pro: 'კი', freeOn: false },
+  { label: 'ლექსიკონი', free: 'არა', pro: 'კი', freeOn: false },
 ]
 
-function PlanCard({ user }: { user: User }) {
+function PlanPicker({ user }: { user: User }) {
   const requestPro = useRequestPro()
   const cancelRequest = useCancelProRequest()
   const [note, setNote] = useState('')
-  const [open, setOpen] = useState(false)
+  const [pickingPro, setPickingPro] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const isPro = user.plan === 'pro' || user.is_admin
   const pending = user.pro_requested_at != null
   const limits = user.limits
 
-  async function submit() {
+  async function choosePro() {
+    if (isPro) return
+    if (pending) return
     setError(null)
     try {
       await requestPro.mutateAsync({ note: note.trim() || undefined })
-      setOpen(false)
+      setPickingPro(false)
       setNote('')
     } catch (err) {
       setError(apiMessage(err, 'მოთხოვნა ვერ გაიგზავნა'))
     }
   }
 
-  async function cancel() {
+  async function stayFree() {
     setError(null)
-    try {
-      await cancelRequest.mutateAsync()
-    } catch (err) {
-      setError(apiMessage(err, 'გაუქმება ვერ მოხერხდა'))
+    setPickingPro(false)
+    if (pending) {
+      try {
+        await cancelRequest.mutateAsync()
+      } catch (err) {
+        setError(apiMessage(err, 'გაუქმება ვერ მოხერხდა'))
+      }
     }
   }
 
   return (
-    <section className={`plan-card ${isPro ? 'is-pro' : ''}`}>
-      <div className="plan-card-head">
-        <div className="plan-card-title">
-          <Crown size={16} />
-          <strong>{isPro ? 'Pro' : 'უფასო გეგმა'}</strong>
-          {user.is_admin && <span className="muted">· ადმინი</span>}
+    <section className="plan-picker">
+      <header className="plan-picker-head">
+        <div>
+          <h2>გეგმა</h2>
+          <p className="muted">აირჩიე უფასო ან Pro — Pro-ს ადმინი ადასტურებს.</p>
         </div>
-        {!isPro && !pending && (
-          <button type="button" className="btn-primary" onClick={() => setOpen((v) => !v)}>
-            Pro-ზე გადასვლა
-          </button>
-        )}
-      </div>
+        <p className="plan-usage-line muted">
+          გამოყენებული: ცხრილები {usage(limits.sheets_used, limits.max_sheets)} · ნოუთები{' '}
+          {usage(limits.notes_used, limits.max_notes)}
+          {limits.can_dictionary
+            ? ` · სიტყვები ${usage(limits.words_used, limits.max_words)}`
+            : ''}
+        </p>
+      </header>
 
-      <ul className="plan-usage">
-        <li>
-          <span className="muted">ცხრილები</span>
-          <strong>{usage(limits.sheets_used, limits.max_sheets)}</strong>
-        </li>
-        <li>
-          <span className="muted">ნოუთები</span>
-          <strong>{usage(limits.notes_used, limits.max_notes)}</strong>
-        </li>
-        <li>
-          <span className="muted">სიტყვები</span>
-          <strong>{usage(limits.words_used, limits.max_words)}</strong>
-        </li>
-      </ul>
-
-      {isPro ? (
-        <ul className="plan-perks">
-          {PRO_PERKS.map((p) => (
-            <li key={p}>
-              <Check size={14} /> {p}
-            </li>
-          ))}
-        </ul>
-      ) : pending ? (
-        <div className="plan-pending">
-          <p>
-            <Clock size={14} /> მოთხოვნა გაგზავნილია — ელოდება ადმინის დადასტურებას. Pro-ს
-            გააქტიურებისას ელფოსტაზე შეტყობინება მოგივა.
-          </p>
-          <button
-            type="button"
-            className="btn-ghost"
-            disabled={cancelRequest.isPending}
-            onClick={() => void cancel()}
-          >
-            მოთხოვნის გაუქმება
-          </button>
-        </div>
-      ) : (
-        <>
-          <ul className="plan-perks muted">
-            {PRO_PERKS.map((p) => (
-              <li key={p}>
-                <Check size={14} /> {p}
+      <div className="plan-options">
+        <article className={`plan-option ${!isPro ? 'is-current' : ''}`}>
+          <div className="plan-option-head">
+            <strong>უფასო</strong>
+            {!isPro && !pending && <span className="plan-badge">აქტიური</span>}
+            {!isPro && pending && <span className="plan-badge muted">მიმდინარე</span>}
+          </div>
+          <ul className="plan-feature-list">
+            {PLAN_FEATURES.map((f) => (
+              <li key={f.label} className={f.freeOn ? '' : 'is-off'}>
+                {f.freeOn ? <Check size={14} /> : <Minus size={14} />}
+                <span>
+                  {f.label}: <strong>{f.free}</strong>
+                </span>
               </li>
             ))}
           </ul>
-          {open && (
+          {isPro ? (
+            <p className="muted plan-option-hint">Pro-დან უფასოზე ადმინი გადაგიყვანს.</p>
+          ) : pending ? (
+            <button
+              type="button"
+              className="btn-ghost"
+              disabled={cancelRequest.isPending}
+              onClick={() => void stayFree()}
+            >
+              უფასოზე დარჩენა
+            </button>
+          ) : (
+            <button type="button" className="btn-ghost" disabled>
+              არჩეული
+            </button>
+          )}
+        </article>
+
+        <article className={`plan-option is-pro ${isPro ? 'is-current' : ''} ${pending ? 'is-pending' : ''}`}>
+          <div className="plan-option-head">
+            <strong>
+              <Crown size={14} /> Pro
+            </strong>
+            {isPro && <span className="plan-badge">აქტიური</span>}
+            {pending && (
+              <span className="plan-badge is-wait">
+                <Clock size={12} /> ელოდება
+              </span>
+            )}
+          </div>
+          <ul className="plan-feature-list">
+            {PLAN_FEATURES.map((f) => (
+              <li key={f.label}>
+                <Check size={14} />
+                <span>
+                  {f.label}: <strong>{f.pro}</strong>
+                </span>
+              </li>
+            ))}
+          </ul>
+
+          {isPro ? (
+            <button type="button" className="btn-ghost" disabled>
+              არჩეული
+            </button>
+          ) : pending ? (
+            <p className="muted plan-option-hint">ადმინი დაადასტურებს — მერე Pro ჩაირთვება.</p>
+          ) : pickingPro ? (
             <div className="plan-request-form">
               <label>
                 შეტყობინება ადმინისთვის (არასავალდებულო)
@@ -128,22 +153,26 @@ function PlanCard({ user }: { user: User }) {
                 />
               </label>
               <div className="plan-request-actions">
-                <button type="button" className="btn-ghost" onClick={() => setOpen(false)}>
-                  გაუქმება
+                <button type="button" className="btn-ghost" onClick={() => setPickingPro(false)}>
+                  უკან
                 </button>
                 <button
                   type="button"
                   className="btn-primary"
                   disabled={requestPro.isPending}
-                  onClick={() => void submit()}
+                  onClick={() => void choosePro()}
                 >
-                  {requestPro.isPending ? 'იგზავნება…' : 'მოთხოვნის გაგზავნა'}
+                  {requestPro.isPending ? 'იგზავნება…' : 'Pro-ის არჩევა'}
                 </button>
               </div>
             </div>
+          ) : (
+            <button type="button" className="btn-primary" onClick={() => setPickingPro(true)}>
+              Pro-ის არჩევა
+            </button>
           )}
-        </>
-      )}
+        </article>
+      </div>
 
       {error && <p className="error">{error}</p>}
     </section>
@@ -221,7 +250,7 @@ export function ProfileView({ user }: { user: User }) {
           </div>
         </header>
 
-        <PlanCard user={user} />
+        <PlanPicker user={user} />
 
         <form className="profile-form" onSubmit={onSubmit}>
           <label>
