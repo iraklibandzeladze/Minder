@@ -44,6 +44,7 @@ export function ShareModal({
   const [email, setEmail] = useState('')
   const [role, setRole] = useState<ShareRole>('viewer')
   const [error, setError] = useState<string | null>(null)
+  const [mailHint, setMailHint] = useState<string | null>(null)
   const [copiedId, setCopiedId] = useState<number | null>(null)
 
   const availableRoles = canInviteModerator
@@ -69,13 +70,28 @@ export function ShareModal({
   async function onInvite(event: FormEvent) {
     event.preventDefault()
     setError(null)
+    setMailHint(null)
     try {
-      await createShare.mutateAsync({
+      const created = await createShare.mutateAsync({
         email: email.trim(),
         role,
       })
       setEmail('')
       setRole('viewer')
+      if (created.mail_sent === false) {
+        if (created.invite_url) {
+          try {
+            await navigator.clipboard.writeText(created.invite_url)
+            setCopiedId(created.id)
+            window.setTimeout(() => setCopiedId(null), 2000)
+          } catch {
+            /* clipboard may be blocked */
+          }
+        }
+        setMailHint(
+          'წერილი ვერ გაიგზავნა — სერვერზე ფოსტა არაა გამართული. მოწვევის ბმული დაკოპირდა, გააგზავნე ხელით.',
+        )
+      }
     } catch (err) {
       if (err instanceof ApiError) {
         const body = err.body as { message?: string; errors?: Record<string, string[]> }
@@ -119,7 +135,7 @@ export function ShareModal({
           <div>
             <p className="share-dialog-kicker">გაზიარება</p>
             <h3 id="share-dialog-title">{title}</h3>
-            <p className="muted">მოიწვიე ელფოსტით — მოდერატორი ან მხოლოდ ნახვა</p>
+            <p className="muted">მოიწვიე ელფოსტით ან გააზიარე მოწვევის ბმული</p>
           </div>
         </header>
 
@@ -159,6 +175,7 @@ export function ShareModal({
           </div>
 
           {error && <p className="error">{error}</p>}
+          {mailHint && <p className="share-mail-hint">{mailHint}</p>}
 
           <button
             type="submit"

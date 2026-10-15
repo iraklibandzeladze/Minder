@@ -118,6 +118,13 @@
   width: 100%;
 }
 
+.share-mail-hint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--warn);
+  line-height: 1.4;
+}
+
 .share-list {
   display: grid;
   gap: 8px;

@@ -9,7 +9,82 @@ import {
   useUpdateNote,
   useUpdateNoteItem,
 } from '@/hooks/useNotes'
+import {
+  formatNoteAmount,
+  parseNoteAmount,
+  splitNoteLinks,
+} from '@/lib/noteLinks'
 import type { NoteCheckMode, NoteItem } from '@/lib/types'
+
+function focusItemInput(id: number) {
+  document
+    .querySelector<HTMLInputElement>(`input[data-note-item="${id}"]`)
+    ?.focus()
+}
+
+function ItemText({
+  item,
+  text,
+  editable,
+  editing,
+  onStartEdit,
+  onStopEdit,
+  onChange,
+  onKeyDown,
+}: {
+  item: NoteItem
+  text: string
+  editable: boolean
+  editing: boolean
+  onStartEdit: () => void
+  onStopEdit: () => void
+  onChange: (value: string) => void
+  onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void
+}) {
+  const parts = splitNoteLinks(text)
+  const hasLinks = parts.some((p) => p.type === 'link')
+  const showInput = editable && (editing || !hasLinks)
+
+  if (showInput) {
+    return (
+      <input
+        className="notes-item-input"
+        data-note-item={item.id}
+        value={text}
+        placeholder="პუნქტი ან ლინკი"
+        onFocus={onStartEdit}
+        onBlur={onStopEdit}
+        onChange={(e) => onChange(e.target.value)}
+        onKeyDown={onKeyDown}
+      />
+    )
+  }
+
+  return (
+    <div
+      className="notes-item-body"
+      onClick={(e) => {
+        if ((e.target as HTMLElement).closest('a')) return
+        if (editable) onStartEdit()
+      }}
+    >
+      {parts.map((part, i) =>
+        part.type === 'link' ? (
+          <a
+            key={i}
+            href={part.href}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {part.value}
+          </a>
+        ) : (
+          <span key={i}>{part.value}</span>
+        ),
+      )}
+    </div>
+  )
+}
 
 export function NotesView({ noteId }: { noteId: number }) {
   const me = useMe()
@@ -25,9 +100,12 @@ export function NotesView({ noteId }: { noteId: number }) {
 
   const [title, setTitle] = useState(note?.title ?? '')
   const [draftBodies, setDraftBodies] = useState<Record<number, string>>({})
+  const [draftAmounts, setDraftAmounts] = useState<Record<number, string>>({})
+  const [editingId, setEditingId] = useState<number | null>(null)
   const [shareOpen, setShareOpen] = useState(false)
   const titleTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const bodyTimers = useRef<Map<number, ReturnType<typeof setTimeout>>>(new Map())
+  const amountTimers = useRef<Map<number, ReturnType<typeof setTimeout>>>(new Map())
   const awaitingTrailingBlank = useRef(false)
   const focusItemId = useRef<number | null>(null)
   const createItemRef = useRef(createItem)
@@ -36,6 +114,8 @@ export function NotesView({ noteId }: { noteId: number }) {
   useEffect(() => {
     setTitle(note?.title ?? '')
     setDraftBodies({})
+    setDraftAmounts({})
+    setEditingId(null)
     awaitingTrailingBlank.current = false
   }, [note?.id, note?.title])
 
@@ -43,15 +123,27 @@ export function NotesView({ noteId }: { noteId: number }) {
     return () => {
       if (titleTimer.current) clearTimeout(titleTimer.current)
       for (const t of bodyTimers.current.values()) clearTimeout(t)
+      for (const t of amountTimers.current.values()) clearTimeout(t)
     }
   }, [])
 
+  function bodyOf(item: NoteItem): string {
+    return draftBodies[item.id] ?? item.body
+  }
+
+  function amountOf(item: NoteItem): string {
+    if (Object.prototype.hasOwnProperty.call(draftAmounts, item.id)) {
+      return draftAmounts[item.id]
+    }
+    return item.amount ?? ''
+  }
+
+  function isItemBlank(item: NoteItem): boolean {
+    return bodyOf(item).trim() === '' && parseNoteAmount(amountOf(item)) == null
+  }
+
   const lastItem = items[items.length - 1]
-  const lastText =
-    lastItem != null
-      ? (draftBodies[lastItem.id] ?? lastItem.body).trim()
-      : null
-  const hasTrailingBlank = lastItem != null && lastText === ''
+  const hasTrailingBlank = lastItem != null && isItemBlank(lastItem)
 
   useEffect(() => {
     if (hasTrailingBlank) {
@@ -83,19 +175,19 @@ export function NotesView({ noteId }: { noteId: number }) {
     if (focusItemId.current == null) return
     const id = focusItemId.current
     focusItemId.current = null
-    requestAnimationFrame(() => {
-      document
-        .querySelector<HTMLInputElement>(`input[data-note-item="${id}"]`)
-        ?.focus()
-    })
+    setEditingId(id)
+    requestAnimationFrame(() => focusItemInput(id))
   }, [items])
+
+  useEffect(() => {
+    if (editingId == null) return
+    const id = editingId
+    const frame = requestAnimationFrame(() => focusItemInput(id))
+    return () => cancelAnimationFrame(frame)
+  }, [editingId])
 
   if (locked || !note) {
     return null
-  }
-
-  function bodyOf(item: NoteItem): string {
-    return draftBodies[item.id] ?? item.body
   }
 
   function scheduleTitleSave(next: string) {
@@ -124,12 +216,33 @@ export function NotesView({ noteId }: { noteId: number }) {
     )
   }
 
-  if (!note) {
-    return (
-      <div className="empty-sheets">
-        <p>ნოუთი ვერ მოიძებნა.</p>
-      </div>
+  function scheduleAmountSave(item: NoteItem, raw: string) {
+    setDraftAmounts((prev) => ({ ...prev, [item.id]: raw }))
+    const existing = amountTimers.current.get(item.id)
+    if (existing) clearTimeout(existing)
+    amountTimers.current.set(
+      item.id,
+      setTimeout(() => {
+        const parsed = parseNoteAmount(raw)
+        const current = item.amount == null ? null : Number(item.amount)
+        if (parsed !== current) {
+          updateItem.mutate({ id: item.id, amount: parsed })
+        }
+        amountTimers.current.delete(item.id)
+      }, 300),
     )
+  }
+
+  function commitAmount(item: NoteItem) {
+    const parsed = parseNoteAmount(amountOf(item))
+    setDraftAmounts((prev) => ({
+      ...prev,
+      [item.id]: parsed == null ? '' : parsed.toFixed(2),
+    }))
+    const current = item.amount == null ? null : Number(item.amount)
+    if (parsed !== current) {
+      updateItem.mutate({ id: item.id, amount: parsed })
+    }
   }
 
   const activeNote = note
@@ -149,12 +262,10 @@ export function NotesView({ noteId }: { noteId: number }) {
 
   async function removeItem(item: NoteItem, index: number) {
     if (items.length <= 1) {
-      // Keep one trailing blank — clear instead of deleting the last row.
       setDraftBodies((prev) => ({ ...prev, [item.id]: '' }))
-      if (item.body !== '') {
-        updateItem.mutate({ id: item.id, body: '', checked: false })
-      } else if (item.checked) {
-        updateItem.mutate({ id: item.id, checked: false })
+      setDraftAmounts((prev) => ({ ...prev, [item.id]: '' }))
+      if (item.body !== '' || item.amount != null || item.checked) {
+        updateItem.mutate({ id: item.id, body: '', amount: null, checked: false })
       }
       return
     }
@@ -162,6 +273,12 @@ export function NotesView({ noteId }: { noteId: number }) {
     const next = items[index + 1]
     await deleteItem.mutateAsync(item.id)
     focusItemId.current = prev?.id ?? next?.id ?? null
+  }
+
+  function focusRow(id: number) {
+    focusItemId.current = id
+    setEditingId(id)
+    requestAnimationFrame(() => focusItemInput(id))
   }
 
   async function onItemKeyDown(
@@ -177,27 +294,14 @@ export function NotesView({ noteId }: { noteId: number }) {
       }
 
       const next = items[index + 1]
-      if (next && bodyOf(next).trim() === '') {
-        focusItemId.current = next.id
-        requestAnimationFrame(() => {
-          document
-            .querySelector<HTMLInputElement>(`input[data-note-item="${next.id}"]`)
-            ?.focus()
-        })
+      if (next && isItemBlank(next)) {
+        focusRow(next.id)
         return
       }
 
       const trailing = items[items.length - 1]
-      if (trailing && bodyOf(trailing).trim() === '') {
-        focusItemId.current = trailing.id
-        requestAnimationFrame(() => {
-          document
-            .querySelector<HTMLInputElement>(
-              `input[data-note-item="${trailing.id}"]`,
-            )
-            ?.focus()
-        })
-        return
+      if (trailing && isItemBlank(trailing)) {
+        focusRow(trailing.id)
       }
       return
     }
@@ -205,22 +309,33 @@ export function NotesView({ noteId }: { noteId: number }) {
     if (
       e.key === 'Backspace' &&
       e.currentTarget.value === '' &&
+      amountOf(item) === '' &&
       items.length > 1
     ) {
       const isLast = index === items.length - 1
-      const prevHasContent =
-        index > 0 ? bodyOf(items[index - 1]).trim() !== '' : false
+      const prevHasContent = index > 0 ? !isItemBlank(items[index - 1]) : false
       if (isLast && prevHasContent) return
 
       e.preventDefault()
       const prev = items[index - 1]
       await deleteItem.mutateAsync(item.id)
-      if (prev) focusItemId.current = prev.id
+      if (prev) focusRow(prev.id)
     }
   }
 
-  const doneCount = items.filter((i) => i.checked && bodyOf(i).trim() !== '').length
-  const totalFilled = items.filter((i) => bodyOf(i).trim() !== '').length
+  const filledItems = items.filter((i) => !isItemBlank(i))
+  const doneCount = filledItems.filter((i) => i.checked).length
+  const totalFilled = filledItems.length
+  const amountValues = items.map((i) => ({
+    value: parseNoteAmount(amountOf(i)),
+    checked: i.checked,
+  }))
+  const hasAnyAmount = amountValues.some((a) => a.value != null)
+  const amountTotal = amountValues.reduce((sum, a) => sum + (a.value ?? 0), 0)
+  const checkedTotal = amountValues.reduce(
+    (sum, a) => sum + (a.checked ? (a.value ?? 0) : 0),
+    0,
+  )
   const editable =
     note.is_owner === true || note.my_role === 'moderator' || note.my_role == null
   const canShare =
@@ -291,7 +406,7 @@ export function NotesView({ noteId }: { noteId: number }) {
 
         <ul className="notes-items">
           {items.map((item, index) => {
-            const filled = bodyOf(item).trim() !== ''
+            const filled = !isItemBlank(item)
             return (
               <li
                 key={item.id}
@@ -313,17 +428,40 @@ export function NotesView({ noteId }: { noteId: number }) {
                     item.checked ? <Circle size={9} fill="currentColor" strokeWidth={0} /> : null
                   )}
                 </button>
-                <input
-                  className="notes-item-input"
-                  data-note-item={item.id}
-                  value={bodyOf(item)}
-                  placeholder="ახალი პუნქტი"
-                  readOnly={!editable}
-                  onChange={(e) => {
-                    if (editable) scheduleBodySave(item, e.target.value)
+                <ItemText
+                  item={item}
+                  text={bodyOf(item)}
+                  editable={editable}
+                  editing={editingId === item.id}
+                  onStartEdit={() => setEditingId(item.id)}
+                  onStopEdit={() => {
+                    setEditingId((id) => (id === item.id ? null : id))
                   }}
+                  onChange={(value) => scheduleBodySave(item, value)}
                   onKeyDown={(e) => {
                     if (editable) void onItemKeyDown(e, item, index)
+                  }}
+                />
+                <input
+                  className="notes-item-amount"
+                  value={amountOf(item)}
+                  inputMode="decimal"
+                  placeholder="0.00"
+                  aria-label="თანხა"
+                  readOnly={!editable}
+                  onChange={(e) => {
+                    if (editable) scheduleAmountSave(item, e.target.value)
+                  }}
+                  onBlur={() => {
+                    if (editable) commitAmount(item)
+                  }}
+                  onKeyDown={(e) => {
+                    if (!editable) return
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      commitAmount(item)
+                      void onItemKeyDown(e, item, index)
+                    }
                   }}
                 />
                 {editable && (
@@ -341,6 +479,15 @@ export function NotesView({ noteId }: { noteId: number }) {
             )
           })}
         </ul>
+
+        {hasAnyAmount && (
+          <div className="notes-total">
+            {checkedTotal > 0 && checkedTotal !== amountTotal && (
+              <span className="muted">მონიშნული {formatNoteAmount(checkedTotal)}</span>
+            )}
+            <strong>ჯამი {formatNoteAmount(amountTotal)}</strong>
+          </div>
+        )}
       </article>
 
       {shareOpen && (

@@ -108,6 +108,7 @@ export interface ResourceShare {
   member_user_id: number | null
   member_name?: string | null
   invite_url?: string
+  mail_sent?: boolean
   accepted_at: string | null
   expires_at: string | null
   created_at: string | null
@@ -253,6 +254,7 @@ export interface NoteItem {
   id: number
   note_id: number
   body: string
+  amount: string | null
   checked: boolean
   position: number
 }

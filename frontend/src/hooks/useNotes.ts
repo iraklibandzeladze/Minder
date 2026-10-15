@@ -127,6 +127,7 @@ export function useCreateNoteItem() {
     mutationFn: async (input: {
       note_id: number
       body: string
+      amount?: number | null
       checked?: boolean
       position?: number
     }) =>
@@ -159,6 +160,7 @@ export function useUpdateNoteItem() {
     }: {
       id: number
       body?: string
+      amount?: number | null
       checked?: boolean
       position?: number
     }) =>

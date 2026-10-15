@@ -15,6 +15,7 @@ class NoteItemResource extends JsonResource
             'id' => $this->id,
             'note_id' => $this->note_id,
             'body' => $this->body,
+            'amount' => $this->amount === null ? null : (string) $this->amount,
             'checked' => (bool) $this->checked,
             'position' => (int) $this->position,
         ];

@@ -14,9 +14,11 @@ use App\Support\ShareAccess;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Throwable;
 
 class ResourceShareController extends Controller
 {
@@ -96,9 +98,22 @@ class ResourceShareController extends Controller
         }
 
         $title = $resource instanceof Note ? $resource->title : $resource->name;
-        Mail::to($email)->send(new ResourceInviteMail($share, $title, $user->name));
+        $mailSent = false;
+        try {
+            Mail::to($email)->send(new ResourceInviteMail($share, $title, $user->name));
+            $mailSent = true;
+        } catch (Throwable $e) {
+            Log::warning('Share invite mail failed', [
+                'share_id' => $share->id,
+                'email' => $email,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
-        return (new ResourceShareResource($share))->response()->setStatusCode(201);
+        return (new ResourceShareResource($share))
+            ->additional(['mail_sent' => $mailSent])
+            ->response()
+            ->setStatusCode(201);
     }
 
     public function destroy(Request $request, ResourceShare $resourceShare): JsonResponse

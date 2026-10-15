@@ -11,6 +11,7 @@ class NoteItem extends Model
         'user_id',
         'note_id',
         'body',
+        'amount',
         'checked',
         'position',
     ];
@@ -20,6 +21,7 @@ class NoteItem extends Model
         return [
             'checked' => 'boolean',
             'position' => 'integer',
+            'amount' => 'decimal:2',
         ];
     }
 

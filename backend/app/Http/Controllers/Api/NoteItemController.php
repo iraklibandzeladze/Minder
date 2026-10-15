@@ -32,6 +32,7 @@ class NoteItemController extends Controller
             return $note->items()->create([
                 'user_id' => $user->id,
                 'body' => $data['body'] ?? '',
+                'amount' => $data['amount'] ?? null,
                 'checked' => $checked,
                 'position' => $data['position'] ?? ((int) $note->items()->max('position') + 1),
             ]);
@@ -60,7 +61,7 @@ class NoteItemController extends Controller
                 $note->items()->where('id', '!=', $noteItem->id)->update(['checked' => false]);
             }
 
-            $noteItem->update($data);
+            $noteItem->update(collect($data)->only(['body', 'amount', 'checked', 'position'])->all());
         });
 
         return new NoteItemResource($noteItem->fresh());

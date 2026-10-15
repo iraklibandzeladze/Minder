@@ -15,7 +15,8 @@ class StoreNoteItemRequest extends FormRequest
     {
         return [
             'note_id' => [$this->isMethod('post') ? 'required' : 'sometimes', 'integer'],
-            'body' => ['nullable', 'string', 'max:500'],
+            'body' => ['nullable', 'string', 'max:2000'],
+            'amount' => ['nullable', 'numeric', 'min:0', 'max:99999999.99'],
             'checked' => ['sometimes', 'boolean'],
             'position' => ['nullable', 'integer', 'min:0'],
         ];
@@ -25,6 +26,9 @@ class StoreNoteItemRequest extends FormRequest
     {
         if ($this->exists('body') && $this->input('body') === null) {
             $this->merge(['body' => '']);
+        }
+        if ($this->exists('amount') && $this->input('amount') === '') {
+            $this->merge(['amount' => null]);
         }
     }
 }

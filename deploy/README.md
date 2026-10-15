@@ -73,6 +73,33 @@ curl -I https://minder.ge/invite/abc            # 200 (index.html)
 curl -I http://www.minder.ge/                   # 301 → https://minder.ge/
 ```
 
+## Outbound email (shares, reminders, Pro)
+
+Production `.env` ships with empty SMTP, so გაზიარება used to 500.
+Use [Resend](https://resend.com) (free tier is enough):
+
+1. Create an API key (`re_…`).
+2. Domains → add `minder.ge`. Copy SPF, DKIM (and DMARC if offered) into Cloudflare DNS.
+3. Wait until the domain is **Verified**.
+4. On the server:
+
+```bash
+cd /var/www/minder/backend
+# edit .env:
+#   MAIL_MAILER=smtp
+#   MAIL_HOST=smtp.resend.com
+#   MAIL_PORT=587
+#   MAIL_USERNAME=resend
+#   MAIL_PASSWORD=re_…
+#   MAIL_SCHEME=smtp
+#   MAIL_FROM_ADDRESS=no-reply@minder.ge
+php artisan config:cache
+sudo systemctl reload php8.5-fpm
+php artisan tinker --execute="Mail::raw('minder.ge test', fn (\$m) => \$m->to('YOU@example.com')->subject('Minder mail'));"
+```
+
+Until DNS is verified, invites still work: copy the pending invite link from the share dialog.
+
 ## Common failures
 
 | Symptom | Cause |
@@ -83,3 +110,4 @@ curl -I http://www.minder.ge/                   # 301 → https://minder.ge/
 | 502 from Nginx | pool not running / socket path differs — `ls /run/php/`, `systemctl status php8.5-fpm` |
 | 500, empty logs | `storage/` not writable by `deploy:www-data` |
 | Old UI after deploy | PWA service worker — one hard reload; `sw.js` is served `no-cache` |
+| Share 500 / „სერვერის შეცდომა“ | `MAIL_*` empty — set Resend SMTP above, then `config:cache` + php-fpm reload |

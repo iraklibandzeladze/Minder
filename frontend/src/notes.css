@@ -165,13 +165,17 @@
 
 .notes-item {
   display: grid;
-  grid-template-columns: 32px 1fr 32px;
+  grid-template-columns: 32px minmax(0, 1fr) 92px 32px;
   align-items: start;
   gap: 6px;
   min-height: 44px;
   padding: 4px 6px;
   border-radius: 10px;
   transition: background 0.12s ease;
+}
+
+.notes-item:not(:has(.notes-item-delete)) {
+  grid-template-columns: 32px minmax(0, 1fr) 92px;
 }
 
 .notes-item:hover {
@@ -222,8 +226,10 @@
   border-color: var(--accent);
 }
 
-.notes-item-input {
+.notes-item-input,
+.notes-item-body {
   width: 100%;
+  min-width: 0;
   border: 0;
   background: transparent;
   color: var(--text);
@@ -234,14 +240,69 @@
   border-radius: 8px;
 }
 
+.notes-item-body {
+  word-break: break-word;
+  cursor: text;
+}
+
+.notes-item-body a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.notes-item-body a:hover {
+  color: var(--text-strong);
+}
+
 .notes-item-input::placeholder {
   color: var(--muted);
   opacity: 0.55;
 }
 
-.notes-item.is-checked .notes-item-input {
+.notes-item-amount {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  text-align: right;
+  padding: 10px 4px;
+  outline: none;
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+  border-radius: 8px;
+}
+
+.notes-item-amount::placeholder {
+  color: var(--muted);
+  opacity: 0.4;
+}
+
+.notes-item.is-checked .notes-item-input,
+.notes-item.is-checked .notes-item-body {
   text-decoration: line-through;
   color: var(--muted);
+}
+
+.notes-item.is-checked .notes-item-body a {
+  color: var(--muted);
+}
+
+.notes-item.is-checked .notes-item-amount {
+  color: var(--muted);
+}
+
+.notes-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 14px;
+  margin-top: 10px;
+  padding: 12px 40px 0 8px;
+  border-top: 1px solid var(--border);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-strong);
 }
 
 .notes-item-delete {
@@ -315,5 +376,21 @@
 
   .notes-item-delete {
     opacity: 0.7;
+  }
+
+  .notes-item {
+    grid-template-columns: 28px minmax(0, 1fr) 72px 28px;
+  }
+
+  .notes-item:not(:has(.notes-item-delete)) {
+    grid-template-columns: 28px minmax(0, 1fr) 72px;
+  }
+
+  .notes-item-amount {
+    font-size: 0.88rem;
+  }
+
+  .notes-total {
+    padding-right: 8px;
   }
 }

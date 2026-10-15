@@ -27,17 +27,19 @@ export function useCreateShare(shareableType: ShareableType, shareableId: number
   return useMutation({
     mutationFn: async (input: { email: string; role: ShareRole }) => {
       await csrf()
-      return unwrapData(
-        await api<{ data: ResourceShare }>('/api/shares', {
-          method: 'POST',
-          body: JSON.stringify({
-            shareable_type: shareableType,
-            shareable_id: shareableId,
-            email: input.email,
-            role: input.role,
-          }),
+      const payload = await api<{ data: ResourceShare; mail_sent?: boolean }>('/api/shares', {
+        method: 'POST',
+        body: JSON.stringify({
+          shareable_type: shareableType,
+          shareable_id: shareableId,
+          email: input.email,
+          role: input.role,
         }),
-      )
+      })
+      return {
+        ...unwrapData(payload),
+        mail_sent: payload.mail_sent !== false,
+      }
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['shares', shareableType, shareableId] })
