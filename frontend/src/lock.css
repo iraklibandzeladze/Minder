@@ -216,6 +216,8 @@
   position: relative;
   z-index: 1;
   width: min(380px, 100%);
+  max-width: 100%;
+  min-width: 0;
   display: grid;
   gap: 16px;
   padding: 28px 24px 20px;
@@ -298,6 +300,7 @@
 
 .lock-dialog-actions {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
   gap: 8px;
   margin-top: 4px;
@@ -334,8 +337,18 @@
 
   .lock-dialog {
     width: 100%;
-    max-width: none;
+    max-width: 100%;
+    min-width: 0;
     border-radius: 16px 16px 0 0;
     padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+    box-sizing: border-box;
+  }
+
+  .lock-dialog-actions {
+    flex-direction: column;
+  }
+
+  .lock-dialog-actions > * {
+    width: 100%;
   }
 }

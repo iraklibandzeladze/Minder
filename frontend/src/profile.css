@@ -311,9 +311,51 @@
   font-size: 0.8rem;
 }
 
-@media (max-width: 560px) {
+@media (max-width: 800px) {
+  .profile-page {
+    padding: 0 0 24px;
+  }
+
+  .profile-card {
+    width: 100%;
+    padding: 16px;
+  }
+
+  .profile-header {
+    align-items: flex-start;
+  }
+
+  .profile-header h1,
+  .plan-usage-line,
+  .plan-picker-head p {
+    overflow-wrap: anywhere;
+  }
+
   .plan-options {
     grid-template-columns: 1fr;
+  }
+
+  .plan-feature-list li {
+    min-width: 0;
+  }
+
+  .admin-search {
+    flex-wrap: wrap;
+  }
+
+  .admin-search input {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .admin-table-wrap {
+    max-width: 100%;
+    min-width: 0;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .admin-pro-actions {
+    white-space: normal;
   }
 }
 

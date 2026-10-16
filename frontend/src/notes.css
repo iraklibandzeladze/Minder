@@ -386,8 +386,15 @@
     grid-template-columns: 28px minmax(0, 1fr) 72px;
   }
 
+  .notes-page,
+  .notes-shell {
+    min-width: 0;
+    max-width: 100%;
+  }
+
   .notes-item-amount {
     font-size: 0.88rem;
+    min-width: 0;
   }
 
   .notes-total {

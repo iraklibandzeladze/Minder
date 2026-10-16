@@ -55,7 +55,7 @@
   top: calc(100% + 8px);
   left: 0;
   z-index: 30;
-  width: min(320px, calc(100vw - 32px));
+  width: min(320px, calc(100% - 32px));
   display: grid;
   gap: 10px;
   padding: 12px;
@@ -434,12 +434,15 @@
 
 .week-modal {
   width: min(420px, 100%);
+  max-width: 100%;
+  min-width: 0;
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 16px;
   display: grid;
   gap: 10px;
+  box-sizing: border-box;
 }
 
 .week-modal h3 {
@@ -531,6 +534,7 @@
 
 .week-modal-actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
@@ -539,6 +543,7 @@
 
 .week-modal-actions-right {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin-left: auto;
 }
@@ -630,15 +635,28 @@
   .week-modal-backdrop {
     padding: 0;
     align-items: flex-end;
+    overflow: hidden;
   }
 
   .week-modal {
     width: 100%;
-    max-height: min(92svh, 100%);
+    max-width: 100%;
+    max-height: min(92dvh, 100%);
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     border-radius: 16px 16px 0 0;
     padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .week-modal-actions,
+  .week-modal-actions-right {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .week-modal-actions .btn-primary,
+  .week-modal-actions .btn-ghost {
+    flex: 1 1 auto;
   }
 }
 
