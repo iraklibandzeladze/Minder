@@ -231,9 +231,12 @@
 
 .week-grid-wrap {
   overflow: auto;
+  max-width: 100%;
+  min-width: 0;
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--bg-elevated);
+  -webkit-overflow-scrolling: touch;
 }
 
 .week-grid {

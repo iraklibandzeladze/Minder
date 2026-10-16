@@ -136,6 +136,8 @@
 
 .dict-table-wrap {
   flex: 1;
+  min-width: 0;
+  max-width: 100%;
   min-height: 0;
   overflow: auto;
   border: 1px solid var(--border);

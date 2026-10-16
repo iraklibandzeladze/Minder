@@ -12,6 +12,8 @@ function readTheme(): ThemeMode {
 function applyTheme(theme: ThemeMode) {
   document.documentElement.dataset.theme = theme
   localStorage.setItem(STORAGE_KEY, theme)
+  const themeColor = theme === 'night' ? '#0f1216' : '#f4f5f7'
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', themeColor)
 }
 
 /** Apply theme before React paint when imported from main. */
