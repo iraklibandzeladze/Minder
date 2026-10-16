@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { registerSW } from 'virtual:pwa-register'
 import App from './App.tsx'
 import { initTheme } from '@/hooks/useTheme'
+import { initVisualViewport } from '@/lib/visualViewport'
 import './index.css'
 import './schedule.css'
 import './notes.css'
@@ -12,6 +13,7 @@ import './lock.css'
 import './share.css'
 
 initTheme()
+initVisualViewport()
 
 registerSW({ immediate: true })
 

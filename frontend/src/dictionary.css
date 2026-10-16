@@ -62,6 +62,8 @@
 .dict-form input,
 .dict-form textarea {
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   box-sizing: border-box;
   border: 1px solid var(--border);
   background: var(--bg-soft);
@@ -69,6 +71,7 @@
   border-radius: 8px;
   padding: 8px 10px;
   font: inherit;
+  font-size: 16px;
 }
 
 .dict-form input:focus,
@@ -81,13 +84,20 @@
 
 .dict-modal-backdrop {
   position: fixed;
-  inset: 0;
   z-index: 200;
+  top: var(--vv-top, 0px);
+  left: var(--vv-left, 0px);
+  width: var(--vv-width, 100%);
+  height: var(--vv-height, 100dvh);
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
   background: rgba(6, 8, 12, 0.78);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 20px;
 }
 
@@ -95,8 +105,12 @@
   display: grid;
   gap: 10px;
   width: min(520px, 100%);
-  max-height: min(90svh, 720px);
-  overflow: auto;
+  max-width: 100%;
+  min-width: 0;
+  max-height: min(90dvh, 720px, 100%);
+  overflow-x: hidden;
+  overflow-y: auto;
+  box-sizing: border-box;
   padding: 16px;
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -120,6 +134,8 @@
 .dict-form label {
   display: grid;
   gap: 4px;
+  min-width: 0;
+  max-width: 100%;
   font-size: 0.85rem;
   color: var(--text);
 }
@@ -130,10 +146,23 @@
 }
 
 .dict-form-actions {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 8px;
+  width: 100%;
   min-width: 0;
+}
+
+.dict-form-actions .btn-primary,
+.dict-form-actions .btn-ghost {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  white-space: normal;
 }
 
 .dict-table-wrap {
@@ -398,23 +427,22 @@ html[data-theme='day'] .dict-en {
   }
 
   .dict-modal-backdrop {
-    place-items: end stretch;
+    align-items: stretch;
+    justify-content: flex-end;
+    flex-direction: column;
     padding: 0;
     padding-top: env(safe-area-inset-top, 0px);
-    overflow: hidden;
   }
 
   .dict-form {
     width: 100%;
     max-width: 100%;
     min-width: 0;
-    max-height: min(92dvh, 100%);
-    overflow: auto;
+    max-height: 100%;
     -webkit-overflow-scrolling: touch;
     border-radius: 16px 16px 0 0;
     padding: 16px 16px 0;
     gap: 8px;
-    box-sizing: border-box;
   }
 
   .dict-form textarea {
@@ -425,18 +453,10 @@ html[data-theme='day'] .dict-en {
     position: sticky;
     bottom: 0;
     z-index: 1;
-    flex-direction: column;
     margin: 0;
     padding: 10px 0 calc(12px + env(safe-area-inset-bottom, 0px));
     background: var(--bg-elevated);
     border-top: 1px solid var(--border);
-  }
-
-  .dict-form-actions .btn-primary,
-  .dict-form-actions .btn-ghost {
-    display: flex;
-    width: 100%;
-    justify-content: center;
   }
 
   .dict-cat-add {
@@ -457,5 +477,17 @@ html[data-theme='day'] .dict-en {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     max-width: 100%;
+  }
+}
+
+@media (min-width: 901px) {
+  .dict-form-actions {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .dict-form-actions .btn-primary,
+  .dict-form-actions .btn-ghost {
+    width: auto;
   }
 }
