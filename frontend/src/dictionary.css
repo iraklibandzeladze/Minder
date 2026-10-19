@@ -468,15 +468,46 @@ html[data-theme='day'] .dict-en {
     flex: 1 1 160px;
   }
 
-  .dict-table {
-    table-layout: auto;
-    min-width: 640px;
+  .dict-table-wrap {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y;
+    overscroll-behavior-x: contain;
   }
 
-  .dict-table-wrap {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    max-width: 100%;
+  .dict-table {
+    width: max-content;
+    min-width: 100%;
+    table-layout: auto;
+  }
+
+  .dict-table th,
+  .dict-table td {
+    min-width: 168px;
+  }
+
+  .dict-table th:nth-child(3),
+  .dict-table th:nth-child(4),
+  .dict-table td:nth-child(3),
+  .dict-table td:nth-child(4) {
+    min-width: 220px;
+  }
+
+  .dict-actions,
+  .dict-table th:last-child,
+  .dict-table td:last-child {
+    width: 88px;
+    min-width: 88px;
+  }
+
+  .dict-table th input,
+  .dict-cat-filter {
+    font-size: 16px;
   }
 }
 

@@ -47,7 +47,7 @@ class WordCategoryController extends Controller
         return response()->json(['data' => $category], 201);
     }
 
-    public function destroy(WordCategory $wordCategory): JsonResponse
+    public function destroy(Request $request, WordCategory $wordCategory): JsonResponse
     {
         $this->authorize('delete', $wordCategory);
         PlanLimits::assertCanUseDictionary($request->user());

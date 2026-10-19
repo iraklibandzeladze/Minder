@@ -87,7 +87,7 @@ class WordController extends Controller
         return new WordResource($word);
     }
 
-    public function destroy(Word $word): JsonResponse
+    public function destroy(Request $request, Word $word): JsonResponse
     {
         $this->authorize('delete', $word);
         PlanLimits::assertCanUseDictionary($request->user());
