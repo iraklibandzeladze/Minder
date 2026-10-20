@@ -346,6 +346,8 @@ export function NotesView({ noteId }: { noteId: number }) {
     (note.is_owner === true || note.my_role === 'moderator') &&
     me.data?.limits.can_share === true
 
+  const exportTitle = note.title.trim() || 'ნოუთი'
+  const exportMode = note.check_mode
   const exportLines = items
     .filter((item) => !isItemBlank(item))
     .map((item) => ({
@@ -359,9 +361,9 @@ export function NotesView({ noteId }: { noteId: number }) {
     setExporting(true)
     try {
       if (priced) {
-        await exportPricedNote(note.title.trim() || 'ნოუთი', exportLines)
+        await exportPricedNote(exportTitle, exportLines)
       } else {
-        await copyNoteForWord(note.title.trim() || 'ნოუთი', note.check_mode, exportLines)
+        await copyNoteForWord(exportTitle, exportMode, exportLines)
         setCopied(true)
         window.setTimeout(() => setCopied(false), 1600)
       }
