@@ -55,7 +55,10 @@
   top: calc(100% + 8px);
   left: 0;
   z-index: 30;
-  width: min(320px, calc(100% - 32px));
+  width: min(320px, calc(100vw - 24px));
+  max-height: min(70dvh, 480px);
+  overflow: auto;
+  box-sizing: border-box;
   display: grid;
   gap: 10px;
   padding: 12px;
@@ -106,7 +109,7 @@
 
 .week-stats-list li {
   display: grid;
-  grid-template-columns: 12px 1fr auto auto;
+  grid-template-columns: 12px minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 8px;
   font-size: 0.82rem;
@@ -119,6 +122,8 @@
 }
 
 .week-stats-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
   color: var(--text-strong);
 }
 
@@ -466,6 +471,10 @@
 .week-field input,
 .week-field select,
 .week-field textarea {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--bg);
@@ -578,11 +587,44 @@
     flex-wrap: wrap;
     gap: 8px;
     padding: 0 8px;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .week-schedule-title-row {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .week-schedule-title-row h2 {
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
 
   .week-schedule-actions {
+    flex: 1 1 100%;
     width: 100%;
-    justify-content: space-between;
+    min-width: 0;
+    justify-content: stretch;
+  }
+
+  .week-schedule-actions .btn-primary,
+  .week-schedule-actions .btn-ghost {
+    flex: 1 1 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+  }
+
+  .week-stats-popover {
+    position: fixed;
+    top: calc(var(--vv-top, 0px) + env(safe-area-inset-top, 0px) + 108px);
+    left: max(12px, env(safe-area-inset-left, 0px));
+    right: max(12px, env(safe-area-inset-right, 0px));
+    width: auto;
+    max-width: 420px;
+    z-index: 80;
   }
 
   .week-schedule-head p {
@@ -646,22 +688,48 @@
   .week-modal {
     width: 100%;
     max-width: 100%;
-    max-height: min(92dvh, 100%);
+    min-width: 0;
+    max-height: 100%;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     border-radius: 16px 16px 0 0;
-    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: 0;
+    box-sizing: border-box;
   }
 
-  .week-modal-actions,
-  .week-modal-actions-right {
+  .week-field input,
+  .week-field select,
+  .week-field textarea {
+    font-size: 16px;
+  }
+
+  .week-modal-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
     width: 100%;
-    margin-left: 0;
+    margin: 8px 0 0;
+    padding: 10px 0 calc(12px + env(safe-area-inset-bottom, 0px));
+    background: var(--bg-elevated);
+    border-top: 1px solid var(--border);
+  }
+
+  .week-modal-actions-right {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+    margin: 0;
   }
 
   .week-modal-actions .btn-primary,
   .week-modal-actions .btn-ghost {
-    flex: 1 1 auto;
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    justify-content: center;
+    box-sizing: border-box;
   }
 }
 

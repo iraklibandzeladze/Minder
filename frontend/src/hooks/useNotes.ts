@@ -26,6 +26,7 @@ export function useCreateNote() {
     mutationFn: async (input: {
       title: string
       check_mode: NoteCheckMode
+      priced?: boolean
       password_protected?: boolean
       password?: string
       password_confirmation?: string
@@ -90,6 +91,7 @@ export function useUpdateNote() {
       id: number
       title?: string
       check_mode?: NoteCheckMode
+      priced?: boolean
       position?: number
     }) =>
       unwrapData(

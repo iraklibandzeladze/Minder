@@ -326,6 +326,7 @@ export function NotesView({ noteId }: { noteId: number }) {
   const filledItems = items.filter((i) => !isItemBlank(i))
   const doneCount = filledItems.filter((i) => i.checked).length
   const totalFilled = filledItems.length
+  const priced = note.priced !== false
   const amountValues = items.map((i) => ({
     value: parseNoteAmount(amountOf(i)),
     checked: i.checked,
@@ -366,6 +367,15 @@ export function NotesView({ noteId }: { noteId: number }) {
 
           <div className="notes-toolbar">
             {editable && (
+              <div className="notes-toolbar-main">
+              <button
+                type="button"
+                className={`btn-ghost notes-priced-btn ${priced ? 'active-toggle' : ''}`}
+                aria-pressed={priced}
+                onClick={() => updateNote.mutate({ id: note.id, priced: !priced })}
+              >
+                ფასიანი
+              </button>
               <div className="notes-seg" role="group" aria-label="მონიშვნის ტიპი">
                 <button
                   type="button"
@@ -381,6 +391,7 @@ export function NotesView({ noteId }: { noteId: number }) {
                 >
                   ერთი არჩევანი
                 </button>
+              </div>
               </div>
             )}
             {!editable && (
@@ -410,7 +421,7 @@ export function NotesView({ noteId }: { noteId: number }) {
             return (
               <li
                 key={item.id}
-                className={`notes-item ${item.checked ? 'is-checked' : ''} ${!filled ? 'is-blank' : ''}`}
+                className={`notes-item ${item.checked ? 'is-checked' : ''} ${!filled ? 'is-blank' : ''} ${priced ? '' : 'is-plain'}`}
               >
                 <button
                   type="button"
@@ -442,28 +453,30 @@ export function NotesView({ noteId }: { noteId: number }) {
                     if (editable) void onItemKeyDown(e, item, index)
                   }}
                 />
-                <input
-                  className="notes-item-amount"
-                  value={amountOf(item)}
-                  inputMode="decimal"
-                  placeholder="0.00"
-                  aria-label="თანხა"
-                  readOnly={!editable}
-                  onChange={(e) => {
-                    if (editable) scheduleAmountSave(item, e.target.value)
-                  }}
-                  onBlur={() => {
-                    if (editable) commitAmount(item)
-                  }}
-                  onKeyDown={(e) => {
-                    if (!editable) return
-                    if (e.key === 'Enter') {
-                      e.preventDefault()
-                      commitAmount(item)
-                      void onItemKeyDown(e, item, index)
-                    }
-                  }}
-                />
+                {priced && (
+                  <input
+                    className="notes-item-amount"
+                    value={amountOf(item)}
+                    inputMode="decimal"
+                    placeholder="0.00"
+                    aria-label="თანხა"
+                    readOnly={!editable}
+                    onChange={(e) => {
+                      if (editable) scheduleAmountSave(item, e.target.value)
+                    }}
+                    onBlur={() => {
+                      if (editable) commitAmount(item)
+                    }}
+                    onKeyDown={(e) => {
+                      if (!editable) return
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        commitAmount(item)
+                        void onItemKeyDown(e, item, index)
+                      }
+                    }}
+                  />
+                )}
                 {editable && (
                   <button
                     type="button"
@@ -480,7 +493,7 @@ export function NotesView({ noteId }: { noteId: number }) {
           })}
         </ul>
 
-        {hasAnyAmount && (
+        {priced && hasAnyAmount && (
           <div className="notes-total">
             {checkedTotal > 0 && checkedTotal !== amountTotal && (
               <span className="muted">მონიშნული {formatNoteAmount(checkedTotal)}</span>

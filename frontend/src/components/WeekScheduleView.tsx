@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { CalendarDays, CalendarRange, ChevronLeft, ChevronRight, Info } from 'lucide-react'
 import { ApiError } from '@/lib/api'
 import {
@@ -557,7 +558,8 @@ export function WeekScheduleView() {
         </div>
       )}
 
-      {draft && (
+      {draft &&
+        createPortal(
         <div className="week-modal-backdrop" onClick={() => setDraft(null)}>
           <div
             className="week-modal"
@@ -720,10 +722,12 @@ export function WeekScheduleView() {
               </div>
             </div>
           </div>
-        </div>
-      )}
+        </div>,
+        document.body,
+        )}
 
-      {templatesOpen && (
+      {templatesOpen &&
+        createPortal(
         <div
           className="week-modal-backdrop"
           onClick={() => setTemplatesOpen(false)}
@@ -859,8 +863,9 @@ export function WeekScheduleView() {
               </button>
             </div>
           </div>
-        </div>
-      )}
+        </div>,
+        document.body,
+        )}
     </div>
   )
 }

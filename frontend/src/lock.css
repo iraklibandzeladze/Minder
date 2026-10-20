@@ -349,9 +349,15 @@
     width: 100%;
     max-width: 100%;
     min-width: 0;
+    max-height: 100%;
+    overflow-y: auto;
     border-radius: 16px 16px 0 0;
     padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
     box-sizing: border-box;
+  }
+
+  .lock-dialog input {
+    font-size: 16px;
   }
 
   .lock-dialog-actions {

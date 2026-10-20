@@ -263,6 +263,7 @@ export interface Note {
   id: number
   title: string
   check_mode: NoteCheckMode
+  priced: boolean
   position: number
   is_locked: boolean
   is_unlocked: boolean

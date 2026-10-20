@@ -23,6 +23,7 @@ class NoteResource extends JsonResource
             'id' => $this->id,
             'title' => $this->title,
             'check_mode' => $this->check_mode,
+            'priced' => (bool) $this->priced,
             'position' => (int) $this->position,
             'is_locked' => $locked && $isOwner,
             'is_unlocked' => $unlocked,

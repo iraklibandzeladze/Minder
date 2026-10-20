@@ -1,4 +1,4 @@
-import { Lock, Plus, X } from 'lucide-react'
+import { Banknote, Lock, Plus, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import {
@@ -37,6 +37,7 @@ export function NotesNav({
   const limit = useNotesSidebarLimit(userId)
   const [creating, setCreating] = useState(false)
   const [title, setTitle] = useState('')
+  const [priced, setPriced] = useState(false)
   const [passwordProtected, setPasswordProtected] = useState(false)
   const [password, setPassword] = useState('')
   const [passwordConfirmation, setPasswordConfirmation] = useState('')
@@ -73,6 +74,7 @@ export function NotesNav({
 
   function resetCreate() {
     setTitle('')
+    setPriced(false)
     setPasswordProtected(false)
     setPassword('')
     setPasswordConfirmation('')
@@ -103,6 +105,7 @@ export function NotesNav({
       const note = await createNote.mutateAsync({
         title: trimmed,
         check_mode: 'checkbox',
+        priced,
         ...passwordPayload(
           canPassword && passwordProtected,
           password,
@@ -216,6 +219,25 @@ export function NotesNav({
                   onChange={(e) => setTitle(e.target.value)}
                 />
               </label>
+              <div className={`pwd-protect ${priced ? 'is-on' : ''}`}>
+                <button
+                  type="button"
+                  className="pwd-protect-toggle"
+                  aria-pressed={priced}
+                  onClick={() => setPriced((value) => !value)}
+                >
+                  <span className="pwd-protect-icon" aria-hidden>
+                    <Banknote size={15} />
+                  </span>
+                  <span className="pwd-protect-copy">
+                    <strong>ფასიანი ნოუთი</strong>
+                    <span>{priced ? 'ხაზებს ექნება თანხა' : 'თანხის გარეშე'}</span>
+                  </span>
+                  <span className={`pwd-switch ${priced ? 'on' : ''}`} aria-hidden>
+                    <span className="pwd-switch-thumb" />
+                  </span>
+                </button>
+              </div>
               {canPassword && (
                 <PasswordProtectFields
                   enabled={passwordProtected}

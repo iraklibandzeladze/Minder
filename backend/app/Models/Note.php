@@ -13,6 +13,7 @@ class Note extends Model
         'user_id',
         'title',
         'check_mode',
+        'priced',
         'position',
         'password_hash',
     ];
@@ -25,6 +26,7 @@ class Note extends Model
     {
         return [
             'position' => 'integer',
+            'priced' => 'boolean',
         ];
     }
 

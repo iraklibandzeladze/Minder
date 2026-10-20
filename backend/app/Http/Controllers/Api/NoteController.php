@@ -48,6 +48,7 @@ class NoteController extends Controller
         $note = $user->notes()->create([
             'title' => $data['title'],
             'check_mode' => $data['check_mode'],
+            'priced' => (bool) ($data['priced'] ?? false),
             'position' => $data['position'] ?? ((int) $user->notes()->max('position') + 1),
             'password_hash' => $protected && filled($password) ? Hash::make($password) : null,
         ]);

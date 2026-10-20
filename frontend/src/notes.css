@@ -112,6 +112,14 @@
   gap: 12px;
 }
 
+.notes-toolbar-main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
 .notes-meta {
   font-size: 0.85rem;
   font-variant-numeric: tabular-nums;
@@ -176,6 +184,11 @@
 
 .notes-item:not(:has(.notes-item-delete)) {
   grid-template-columns: 32px minmax(0, 1fr) 92px;
+}
+
+.notes-item.is-plain,
+.notes-item.is-plain:not(:has(.notes-item-delete)) {
+  grid-template-columns: 32px minmax(0, 1fr) 32px;
 }
 
 .notes-item:hover {
@@ -357,7 +370,8 @@
     font-size: 1.55rem;
   }
 
-  .notes-toolbar {
+  .notes-toolbar,
+  .notes-toolbar-main {
     flex-direction: column;
     align-items: stretch;
   }
@@ -386,6 +400,17 @@
     grid-template-columns: 28px minmax(0, 1fr) 72px;
   }
 
+  .notes-item.is-plain,
+  .notes-item.is-plain:not(:has(.notes-item-delete)) {
+    grid-template-columns: 28px minmax(0, 1fr) 28px;
+  }
+
+  .notes-priced-btn {
+    display: inline-flex;
+    width: 100%;
+    justify-content: center;
+  }
+
   .notes-page,
   .notes-shell {
     min-width: 0;
@@ -393,7 +418,7 @@
   }
 
   .notes-item-amount {
-    font-size: 0.88rem;
+    font-size: 16px;
     min-width: 0;
   }
 
