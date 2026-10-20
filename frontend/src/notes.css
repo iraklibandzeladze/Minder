@@ -120,6 +120,13 @@
   min-width: 0;
 }
 
+.notes-export-btn,
+.notes-share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .notes-meta {
   font-size: 0.85rem;
   font-variant-numeric: tabular-nums;

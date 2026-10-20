@@ -1,4 +1,4 @@
-import { Check, Circle, UserPlus } from 'lucide-react'
+import { Check, Circle, Copy, FileSpreadsheet, UserPlus } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { ShareModal } from '@/components/ShareModal'
 import { useMe } from '@/hooks/useAuth'
@@ -9,6 +9,7 @@ import {
   useUpdateNote,
   useUpdateNoteItem,
 } from '@/hooks/useNotes'
+import { copyNoteForWord, exportPricedNote } from '@/lib/exportNote'
 import {
   formatNoteAmount,
   parseNoteAmount,
@@ -103,6 +104,8 @@ export function NotesView({ noteId }: { noteId: number }) {
   const [draftAmounts, setDraftAmounts] = useState<Record<number, string>>({})
   const [editingId, setEditingId] = useState<number | null>(null)
   const [shareOpen, setShareOpen] = useState(false)
+  const [copied, setCopied] = useState(false)
+  const [exporting, setExporting] = useState(false)
   const titleTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const bodyTimers = useRef<Map<number, ReturnType<typeof setTimeout>>>(new Map())
   const amountTimers = useRef<Map<number, ReturnType<typeof setTimeout>>>(new Map())
@@ -343,6 +346,32 @@ export function NotesView({ noteId }: { noteId: number }) {
     (note.is_owner === true || note.my_role === 'moderator') &&
     me.data?.limits.can_share === true
 
+  const exportLines = items
+    .filter((item) => !isItemBlank(item))
+    .map((item) => ({
+      body: bodyOf(item),
+      checked: item.checked,
+      amount: parseNoteAmount(amountOf(item)),
+    }))
+
+  async function exportNote() {
+    if (exporting || exportLines.length === 0) return
+    setExporting(true)
+    try {
+      if (priced) {
+        await exportPricedNote(note.title.trim() || 'ნოუთი', exportLines)
+      } else {
+        await copyNoteForWord(note.title.trim() || 'ნოუთი', note.check_mode, exportLines)
+        setCopied(true)
+        window.setTimeout(() => setCopied(false), 1600)
+      }
+    } catch {
+      window.alert(priced ? 'Excel ვერ შეიქმნა.' : 'ტექსტი ვერ დაკოპირდა.')
+    } finally {
+      setExporting(false)
+    }
+  }
+
   return (
     <div className="notes-shell">
       <article className="notes-page">
@@ -402,6 +431,16 @@ export function NotesView({ noteId }: { noteId: number }) {
                 {doneCount}/{totalFilled}
               </span>
             )}
+            <button
+              type="button"
+              className="btn-ghost notes-export-btn"
+              disabled={exporting || exportLines.length === 0}
+              title={priced ? 'Excel-ში გადატანა' : 'ტექსტის კოპირება Word-ისთვის'}
+              onClick={() => void exportNote()}
+            >
+              {priced ? <FileSpreadsheet size={15} /> : <Copy size={15} />}
+              {priced ? 'Excel' : copied ? 'დაკოპირდა' : 'Word'}
+            </button>
             {canShare && (
               <button
                 type="button"
