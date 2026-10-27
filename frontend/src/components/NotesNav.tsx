@@ -1,4 +1,4 @@
-import { Banknote, Lock, Plus, Trash2, X } from 'lucide-react'
+import { Banknote, Lock, Trash2, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import {
@@ -6,6 +6,7 @@ import {
   passwordPayload,
   validatePasswordProtect,
 } from '@/components/PasswordProtectFields'
+import { SidebarSection } from '@/components/SidebarSection'
 import { UnlockModal } from '@/components/UnlockModal'
 import { useMe } from '@/hooks/useAuth'
 import { useCreateNote, useDeleteNote, useNotes } from '@/hooks/useNotes'
@@ -134,65 +135,60 @@ export function NotesNav({
 
   return (
     <div className="notes-nav sidebar-module">
-      <div className="sidebar-module-head">
-        <h2>ნოუთები</h2>
-        <button
-          type="button"
-          className="sidebar-add"
-          disabled={atNoteLimit}
-          aria-label="ნოუთის დამატება"
-          title={
-            atNoteLimit
-              ? `ლიმიტი: ${limits?.max_notes} ნოუთი (უფასო გეგმა)`
-              : 'ნოუთის დამატება'
-          }
-          onClick={() => setCreating(true)}
-        >
-          <Plus size={15} />
-        </button>
-      </div>
-      <div className="sheet-nav-list">
-        {visible.map((note: Note) => (
-          <div
-            key={note.id}
-            className={`sheet-nav-item ${note.id === activeId ? 'active' : ''}`}
-          >
-            <button
-              type="button"
-              className="sheet-nav-btn notes-nav-btn"
-              onClick={() => onSelect(note.id)}
+      <SidebarSection
+        key={`notes:${userId}`}
+        userId={userId}
+        section="notes"
+        title="ნოუთები"
+        addLabel="ნოუთის დამატება"
+        addDisabled={atNoteLimit}
+        addTitle={atNoteLimit ? `ლიმიტი: ${limits?.max_notes} ნოუთი (უფასო გეგმა)` : 'ნოუთის დამატება'}
+        onAdd={() => setCreating(true)}
+      >
+        <div className="sheet-nav-list">
+          {visible.map((note: Note) => (
+            <div
+              key={note.id}
+              className={`sheet-nav-item ${note.id === activeId ? 'active' : ''}`}
             >
-              <span className="notes-nav-ico" aria-hidden>
-                {note.is_locked ? <Lock size={13} /> : <span className="notes-nav-dot" />}
-              </span>
-              <span className="notes-nav-label">{note.title}</span>
-            </button>
-            <div className="sheet-nav-actions">
-              {(note.is_owner !== false) && (
               <button
                 type="button"
-                className="btn-icon sheet-action"
-                title="წაშლა"
-                aria-label={`ნოუთის წაშლა: ${note.title}`}
-                onClick={() => requestDelete(note)}
+                className="sheet-nav-btn notes-nav-btn"
+                aria-current={note.id === activeId ? 'page' : undefined}
+                onClick={() => onSelect(note.id)}
               >
-                <Trash2 size={14} />
+                <span className="notes-nav-ico" aria-hidden>
+                  {note.is_locked ? <Lock size={13} /> : <span className="notes-nav-dot" />}
+                </span>
+                <span className="notes-nav-label">{note.title}</span>
               </button>
-              )}
+              <div className="sheet-nav-actions">
+                {(note.is_owner !== false) && (
+                <button
+                  type="button"
+                  className="btn-icon sheet-action"
+                  title="წაშლა"
+                  aria-label={`ნოუთის წაშლა: ${note.title}`}
+                  onClick={() => requestDelete(note)}
+                >
+                  <Trash2 size={14} />
+                </button>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
 
-      {needsCollapse && (
-        <button
-          type="button"
-          className="btn-ghost sheet-nav-more"
-          onClick={() => setExpanded((v) => !v)}
-        >
-          {expanded ? 'ნაკლები' : `მეტი (${hiddenCount})`}
-        </button>
-      )}
+        {needsCollapse && (
+          <button
+            type="button"
+            className="btn-ghost sheet-nav-more"
+            onClick={() => setExpanded((v) => !v)}
+          >
+            {expanded ? 'ნაკლები' : `მეტი (${hiddenCount})`}
+          </button>
+        )}
+      </SidebarSection>
 
       {creating &&
         createPortal(

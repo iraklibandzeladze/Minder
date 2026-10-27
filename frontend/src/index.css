@@ -1322,16 +1322,54 @@ textarea {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin: 0 2px 6px 10px;
+  margin: 0 2px 6px 4px;
 }
 
 .app-sidebar .sidebar-module h2 {
   margin: 0;
   font-size: 0.75rem;
-  font-weight: 500;
-  letter-spacing: 0;
-  text-transform: none;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--sidebar-section);
+}
+
+.sidebar-module-head h2 {
+  flex: 1;
+  min-width: 0;
+}
+
+.sidebar-section-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 32px;
+  padding: 4px 6px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sidebar-section-toggle svg { flex-shrink: 0; }
+.sidebar-section-toggle:hover { color: var(--sidebar-text-active); background: var(--sidebar-pill); }
+.sidebar-section-toggle:focus-visible,
+.sidebar-add:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.sidebar-section-panel[hidden] { display: none; }
+
+.sidebar-item-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  flex-shrink: 0;
+  color: var(--sidebar-icon);
 }
 
 .sidebar-add {
@@ -1363,6 +1401,8 @@ textarea {
 }
 
 .sidebar-module .sheet-nav-item {
+  position: relative;
+  grid-template-columns: minmax(0, 1fr) auto;
   border: 0;
   padding: 0;
   border-radius: 8px;
@@ -1373,17 +1413,35 @@ textarea {
 .sidebar-module .sheet-nav-item.active:hover {
   border: 0;
   background: var(--sidebar-pill);
-  box-shadow: var(--sidebar-shadow);
+  box-shadow: inset 3px 0 0 var(--accent), var(--sidebar-shadow);
 }
 
 .sidebar-module .sheet-nav-btn {
   min-height: 36px;
-  padding: 7px 10px;
+  justify-content: flex-start;
+  gap: 10px;
+  text-align: left;
+  padding: 7px 10px 7px 16px;
   font-size: 0.875rem;
   font-weight: 500;
   border-radius: 8px;
   color: var(--sidebar-text);
 }
+
+.sidebar-module .sheet-nav-label-row {
+  flex: 1;
+  overflow: hidden;
+}
+
+.sidebar-module .sheet-nav-label-row > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-module .sheet-rename { min-width: 0; width: 100%; }
+.sidebar-module .sheet-nav-actions { padding-right: 6px; }
+.sidebar-module .sheet-nav-item.active .sheet-nav-actions { opacity: 1; pointer-events: auto; }
 
 .sidebar-module .sheet-nav-item.active .sheet-nav-btn {
   color: var(--sidebar-text-active);
@@ -1407,7 +1465,7 @@ textarea {
   background: transparent;
   color: var(--sidebar-section);
   justify-content: flex-start;
-  padding: 6px 10px;
+  padding: 6px 16px;
   font-size: 0.84rem;
   font-weight: 500;
   width: 100%;
@@ -1439,10 +1497,7 @@ textarea {
   }
 
   .sidebar-module .sheet-nav-actions {
-    position: absolute;
-    top: 0;
-    right: 2px;
-    bottom: 0;
+    position: static;
     display: flex;
     align-items: center;
     opacity: 0;

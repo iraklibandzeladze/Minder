@@ -1,4 +1,4 @@
-import { Lock, Plus, X } from 'lucide-react'
+import { FileSpreadsheet, Lock, Pencil, Trash2, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import {
@@ -6,6 +6,7 @@ import {
   passwordPayload,
   validatePasswordProtect,
 } from '@/components/PasswordProtectFields'
+import { SidebarSection } from '@/components/SidebarSection'
 import { UnlockModal } from '@/components/UnlockModal'
 import { useMe } from '@/hooks/useAuth'
 import { useCreateSheet, useDeleteSheet, useUpdateSheet } from '@/hooks/useLedger'
@@ -148,98 +149,97 @@ export function SheetTabs({
 
   return (
     <div className="sheet-nav sidebar-module">
-      <div className="sidebar-module-head">
-        <h2>ცხრილები</h2>
-        <button
-          type="button"
-          className="sidebar-add"
-          disabled={atSheetLimit}
-          aria-label="ცხრილის დამატება"
-          title={
-            atSheetLimit
-              ? `ლიმიტი: ${limits?.max_sheets} ცხრილი (უფასო გეგმა)`
-              : 'ცხრილის დამატება'
-          }
-          onClick={() => setCreating(true)}
-        >
-          <Plus size={15} />
-        </button>
-      </div>
-      <div className="sheet-nav-list">
-        {visible.map((sheet) => (
-          <div
-            key={sheet.id}
-            className={`sheet-nav-item ${sheet.id === activeId ? 'active' : ''}`}
-          >
-            {renamingId === sheet.id ? (
-              <input
-                className="sheet-rename"
-                value={renameValue}
-                autoFocus
-                onChange={(e) => setRenameValue(e.target.value)}
-                onBlur={() => {
-                  const next = renameValue.trim()
-                  if (next && next !== sheet.name) {
-                    updateSheet.mutate({ id: sheet.id, name: next })
-                  }
-                  setRenamingId(null)
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
-                  if (e.key === 'Escape') setRenamingId(null)
-                }}
-              />
-            ) : (
-              <button
-                type="button"
-                className="sheet-nav-btn"
-                onClick={() => onSelect(sheet.id)}
-              >
-                <span className="sheet-nav-label-row">
-                  {sheet.is_locked && <Lock size={12} className="sheet-lock-ico" />}
-                  <span>{sheet.name}</span>
-                </span>
-                {kindLabel(sheet.kind) && (
-                  <span className="sheet-kind">{kindLabel(sheet.kind)}</span>
-                )}
-              </button>
-            )}
-            <div className="sheet-nav-actions">
-              <button
-                type="button"
-                className="btn-icon sheet-action"
-                title="გადარქმევა"
-                onClick={() => {
-                  setRenamingId(sheet.id)
-                  setRenameValue(sheet.name)
-                }}
-              >
-                ✎
-              </button>
-              <button
-                type="button"
-                className="btn-icon sheet-action"
-                title="წაშლა"
-                onClick={() => requestDelete(sheet)}
-                disabled={sheet.is_owner === false}
-                style={sheet.is_owner === false ? { visibility: 'hidden' } : undefined}
-              >
-                ×
-              </button>
+      <SidebarSection
+        key={`sheets:${userId}`}
+        userId={userId}
+        section="sheets"
+        title="ცხრილები"
+        addLabel="ცხრილის დამატება"
+        addDisabled={atSheetLimit}
+        addTitle={atSheetLimit ? `ლიმიტი: ${limits?.max_sheets} ცხრილი (უფასო გეგმა)` : 'ცხრილის დამატება'}
+        onAdd={() => setCreating(true)}
+      >
+        <div className="sheet-nav-list">
+          {visible.map((sheet) => (
+            <div
+              key={sheet.id}
+              className={`sheet-nav-item ${sheet.id === activeId ? 'active' : ''}`}
+            >
+              {renamingId === sheet.id ? (
+                <input
+                  className="sheet-rename"
+                  value={renameValue}
+                  autoFocus
+                  onChange={(e) => setRenameValue(e.target.value)}
+                  onBlur={() => {
+                    const next = renameValue.trim()
+                    if (next && next !== sheet.name) {
+                      updateSheet.mutate({ id: sheet.id, name: next })
+                    }
+                    setRenamingId(null)
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
+                    if (e.key === 'Escape') setRenamingId(null)
+                  }}
+                />
+              ) : (
+                <button
+                  type="button"
+                  className="sheet-nav-btn"
+                  aria-current={sheet.id === activeId ? 'page' : undefined}
+                  onClick={() => onSelect(sheet.id)}
+                >
+                  <span className="sidebar-item-icon" aria-hidden>
+                    {sheet.is_locked ? <Lock size={13} /> : <FileSpreadsheet size={14} />}
+                  </span>
+                  <span className="sheet-nav-label-row">
+                    <span>{sheet.name}</span>
+                  </span>
+                  {kindLabel(sheet.kind) && (
+                    <span className="sheet-kind">{kindLabel(sheet.kind)}</span>
+                  )}
+                </button>
+              )}
+              <div className="sheet-nav-actions">
+                <button
+                  type="button"
+                  className="btn-icon sheet-action"
+                  title="გადარქმევა"
+                  aria-label={`ცხრილის გადარქმევა: ${sheet.name}`}
+                  onClick={() => {
+                    setRenamingId(sheet.id)
+                    setRenameValue(sheet.name)
+                  }}
+                >
+                  <Pencil size={14} />
+                </button>
+                <button
+                  type="button"
+                  className="btn-icon sheet-action"
+                  title="წაშლა"
+                  aria-label={`ცხრილის წაშლა: ${sheet.name}`}
+                  onClick={() => requestDelete(sheet)}
+                  disabled={sheet.is_owner === false}
+                  style={sheet.is_owner === false ? { visibility: 'hidden' } : undefined}
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
 
-      {needsCollapse && (
-        <button
-          type="button"
-          className="btn-ghost sheet-nav-more"
-          onClick={() => setExpanded((v) => !v)}
-        >
-          {expanded ? 'ნაკლები' : `მეტი (${hiddenCount})`}
-        </button>
-      )}
+        {needsCollapse && (
+          <button
+            type="button"
+            className="btn-ghost sheet-nav-more"
+            onClick={() => setExpanded((v) => !v)}
+          >
+            {expanded ? 'ნაკლები' : `მეტი (${hiddenCount})`}
+          </button>
+        )}
+      </SidebarSection>
 
       {creating &&
         createPortal(
