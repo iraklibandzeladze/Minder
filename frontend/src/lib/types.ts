@@ -5,6 +5,7 @@ export type ColumnRole = 'payable' | 'paid' | 'remaining' | null
 export type SheetKind = 'ledger' | 'table' | 'monthly_expenses' | 'calculator'
 export type ThemeMode = 'night' | 'day'
 export type AppView = 'schedule' | 'notes' | 'sheet' | 'profile' | 'settings' | 'admin' | 'dictionary'
+export type NoteType = 'checklist' | 'rich_text'
 export type NoteCheckMode = 'checkbox' | 'radio'
 export type ShareRole = 'moderator' | 'viewer'
 export type ShareStatus = 'pending' | 'accepted' | 'revoked'
@@ -262,6 +263,8 @@ export interface NoteItem {
 export interface Note {
   id: number
   title: string
+  type: NoteType
+  content: string | null
   check_mode: NoteCheckMode
   priced: boolean
   position: number

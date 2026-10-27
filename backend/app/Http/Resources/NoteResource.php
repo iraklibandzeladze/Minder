@@ -22,6 +22,8 @@ class NoteResource extends JsonResource
         return [
             'id' => $this->id,
             'title' => $this->title,
+            'type' => $this->type,
+            'content' => $unlocked ? $this->content : null,
             'check_mode' => $this->check_mode,
             'priced' => (bool) $this->priced,
             'position' => (int) $this->position,

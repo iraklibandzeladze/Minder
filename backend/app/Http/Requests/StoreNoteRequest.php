@@ -19,6 +19,8 @@ class StoreNoteRequest extends FormRequest
         return [
             'title' => [$required, 'string', 'max:120'],
             'check_mode' => [$required, 'string', Rule::in(['checkbox', 'radio'])],
+            'type' => ['sometimes', 'string', Rule::in(['checklist', 'rich_text'])],
+            'content' => ['sometimes', 'nullable', 'string', 'max:1000000'],
             'priced' => ['sometimes', 'boolean'],
             'position' => ['nullable', 'integer', 'min:0'],
             'password_protected' => ['sometimes', 'boolean'],

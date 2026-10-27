@@ -11,7 +11,7 @@ import { useMe } from '@/hooks/useAuth'
 import { useCreateNote, useDeleteNote, useNotes } from '@/hooks/useNotes'
 import { useNotesSidebarLimit } from '@/hooks/useSidebarListLimits'
 import { ApiError } from '@/lib/api'
-import type { Note } from '@/lib/types'
+import type { Note, NoteType } from '@/lib/types'
 
 function apiErrorMessage(err: unknown): string {
   if (err instanceof ApiError) {
@@ -37,6 +37,7 @@ export function NotesNav({
   const limit = useNotesSidebarLimit(userId)
   const [creating, setCreating] = useState(false)
   const [title, setTitle] = useState('')
+  const [noteType, setNoteType] = useState<NoteType>('checklist')
   const [priced, setPriced] = useState(false)
   const [passwordProtected, setPasswordProtected] = useState(false)
   const [password, setPassword] = useState('')
@@ -75,6 +76,7 @@ export function NotesNav({
   function resetCreate() {
     setTitle('')
     setPriced(false)
+    setNoteType('checklist')
     setPasswordProtected(false)
     setPassword('')
     setPasswordConfirmation('')
@@ -105,6 +107,7 @@ export function NotesNav({
       const note = await createNote.mutateAsync({
         title: trimmed,
         check_mode: 'checkbox',
+        type: noteType,
         priced,
         ...passwordPayload(
           canPassword && passwordProtected,
@@ -219,6 +222,19 @@ export function NotesNav({
                   onChange={(e) => setTitle(e.target.value)}
                 />
               </label>
+              <div className="notes-seg notes-seg-compact" role="group" aria-label="ნოუთის ტიპი">
+                {(['checklist', 'rich_text'] as const).map((type) => (
+                  <button
+                    key={type}
+                    type="button"
+                    className={`notes-seg-btn ${noteType === type ? 'active' : ''}`}
+                    aria-pressed={noteType === type}
+                    onClick={() => setNoteType(type)}
+                  >
+                    {type === 'checklist' ? 'ჩეკლისტი' : 'ტექსტური ნოუთი'}
+                  </button>
+                ))}
+              </div>
               <div className={`pwd-protect ${priced ? 'is-on' : ''}`}>
                 <button
                   type="button"

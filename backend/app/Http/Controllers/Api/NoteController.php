@@ -47,19 +47,23 @@ class NoteController extends Controller
 
         $note = $user->notes()->create([
             'title' => $data['title'],
+            'type' => $data['type'] ?? 'checklist',
+            'content' => $data['content'] ?? null,
             'check_mode' => $data['check_mode'],
             'priced' => (bool) ($data['priced'] ?? false),
             'position' => $data['position'] ?? ((int) $user->notes()->max('position') + 1),
             'password_hash' => $protected && filled($password) ? Hash::make($password) : null,
         ]);
 
-        // Notion-like starter empty line
-        $note->items()->create([
-            'user_id' => $user->id,
-            'body' => '',
-            'checked' => false,
-            'position' => 0,
-        ]);
+        // Only checklists need a starter empty line.
+        if ($note->type === 'checklist') {
+            $note->items()->create([
+                'user_id' => $user->id,
+                'body' => '',
+                'checked' => false,
+                'position' => 0,
+            ]);
+        }
 
         // Password-protected notes stay locked until explicit unlock.
         if (! ResourceUnlock::noteHasPassword($note)) {
@@ -72,6 +76,7 @@ class NoteController extends Controller
     public function update(StoreNoteRequest $request, Note $note): NoteResource
     {
         $this->authorize('update', $note);
+        ResourceUnlock::abortUnlessNoteUnlocked($note, $request->user());
         $data = $request->validated();
         unset($data['password'], $data['password_protected'], $data['password_confirmation']);
 

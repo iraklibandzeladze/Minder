@@ -1,5 +1,5 @@
 import { Check, Circle, Copy, FileSpreadsheet, UserPlus } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { ShareModal } from '@/components/ShareModal'
 import { useMe } from '@/hooks/useAuth'
 import {
@@ -16,6 +16,8 @@ import {
   splitNoteLinks,
 } from '@/lib/noteLinks'
 import type { NoteCheckMode, NoteItem } from '@/lib/types'
+
+const RichTextNoteEditor = lazy(() => import('@/components/RichTextNoteEditor').then((module) => ({ default: module.RichTextNoteEditor })))
 
 function focusItemInput(id: number) {
   document
@@ -155,7 +157,7 @@ export function NotesView({ noteId }: { noteId: number }) {
   }, [hasTrailingBlank])
 
   useEffect(() => {
-    if (!note || locked) return
+    if (!note || locked || note.type === 'rich_text') return
     if (note.my_role === 'viewer') return
     if (hasTrailingBlank) return
     if (awaitingTrailingBlank.current) return
@@ -397,7 +399,7 @@ export function NotesView({ noteId }: { noteId: number }) {
           />
 
           <div className="notes-toolbar">
-            {editable && (
+            {editable && note.type !== 'rich_text' && (
               <div className="notes-toolbar-main">
               <button
                 type="button"
@@ -428,12 +430,12 @@ export function NotesView({ noteId }: { noteId: number }) {
             {!editable && (
               <span className="notes-role-badge muted">მხოლოდ ნახვა</span>
             )}
-            {totalFilled > 0 && (
+            {note.type !== 'rich_text' && totalFilled > 0 && (
               <span className="notes-meta muted">
                 {doneCount}/{totalFilled}
               </span>
             )}
-            <button
+            {note.type !== 'rich_text' && <button
               type="button"
               className="btn-ghost notes-export-btn"
               disabled={exporting || exportLines.length === 0}
@@ -442,7 +444,7 @@ export function NotesView({ noteId }: { noteId: number }) {
             >
               {priced ? <FileSpreadsheet size={15} /> : <Copy size={15} />}
               {priced ? 'Excel' : copied ? 'დაკოპირდა' : 'Word'}
-            </button>
+            </button>}
             {canShare && (
               <button
                 type="button"
@@ -456,7 +458,11 @@ export function NotesView({ noteId }: { noteId: number }) {
           </div>
         </header>
 
-        <ul className="notes-items">
+        {note.type === 'rich_text' ? (
+          <Suspense fallback={<p className="muted">რედაქტორი იტვირთება…</p>}>
+            <RichTextNoteEditor key={note.id} note={note} editable={editable} />
+          </Suspense>
+        ) : <ul className="notes-items">
           {items.map((item, index) => {
             const filled = !isItemBlank(item)
             return (
@@ -532,9 +538,9 @@ export function NotesView({ noteId }: { noteId: number }) {
               </li>
             )
           })}
-        </ul>
+        </ul>}
 
-        {priced && hasAnyAmount && (
+        {note.type !== 'rich_text' && priced && hasAnyAmount && (
           <div className="notes-total">
             {checkedTotal > 0 && checkedTotal !== amountTotal && (
               <span className="muted">მონიშნული {formatNoteAmount(checkedTotal)}</span>

@@ -1,12 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import { unwrapData } from '@/lib/unwrap'
-import type { LaravelCollection, Note, NoteCheckMode, NoteItem } from '@/lib/types'
+import type { LaravelCollection, Note, NoteCheckMode, NoteItem, NoteType } from '@/lib/types'
 
 function sanitizeNotes(notes: Note[]): Note[] {
   return notes.map((note) => {
     if (note.is_locked && note.is_unlocked !== true) {
-      return { ...note, items: [], is_unlocked: false }
+      return { ...note, items: [], content: null, is_unlocked: false }
     }
     return note
   })
@@ -25,6 +25,8 @@ export function useCreateNote() {
   return useMutation({
     mutationFn: async (input: {
       title: string
+      type?: NoteType
+      content?: string | null
       check_mode: NoteCheckMode
       priced?: boolean
       password_protected?: boolean
@@ -74,7 +76,7 @@ export function useLockNote() {
       queryClient.setQueryData<Note[]>(['notes'], (prev) => {
         if (!prev) return prev
         return prev.map((n) =>
-          n.id === note.id ? { ...note, items: [], is_unlocked: false } : n,
+          n.id === note.id ? { ...note, items: [], content: null, is_unlocked: false } : n,
         )
       })
     },
@@ -90,6 +92,8 @@ export function useUpdateNote() {
     }: {
       id: number
       title?: string
+      type?: NoteType
+      content?: string | null
       check_mode?: NoteCheckMode
       priced?: boolean
       position?: number
