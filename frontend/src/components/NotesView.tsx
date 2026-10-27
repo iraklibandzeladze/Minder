@@ -380,25 +380,38 @@ export function NotesView({ noteId }: { noteId: number }) {
     <div className="notes-shell">
       <article className="notes-page">
         <header className="notes-page-head">
-          <input
-            className="notes-title"
-            value={title}
-            readOnly={!editable}
-            onChange={(e) => {
-              if (editable) scheduleTitleSave(e.target.value)
-            }}
-            onBlur={() => {
-              if (!editable) return
-              const trimmed = title.trim()
-              if (!trimmed) setTitle(note.title)
-              else if (trimmed !== note.title) {
-                updateNote.mutate({ id: note.id, title: trimmed })
-              }
-            }}
-            placeholder="უსათაურო"
-          />
+          <div className="notes-heading-row">
+            <input
+              className="notes-title"
+              value={title}
+              readOnly={!editable}
+              onChange={(e) => {
+                if (editable) scheduleTitleSave(e.target.value)
+              }}
+              onBlur={() => {
+                if (!editable) return
+                const trimmed = title.trim()
+                if (!trimmed) setTitle(note.title)
+                else if (trimmed !== note.title) {
+                  updateNote.mutate({ id: note.id, title: trimmed })
+                }
+              }}
+              placeholder="უსათაურო"
+              aria-label="ნოუთის სათაური"
+            />
+            {canShare && (
+              <button
+                type="button"
+                className="btn-ghost notes-share-btn"
+                onClick={() => setShareOpen(true)}
+              >
+                <UserPlus size={15} />
+                გაზიარება
+              </button>
+            )}
+          </div>
 
-          <div className="notes-toolbar">
+          {(note.type !== 'rich_text' || !editable) && <div className="notes-toolbar">
             {editable && note.type !== 'rich_text' && (
               <div className="notes-toolbar-main">
               <button
@@ -445,17 +458,7 @@ export function NotesView({ noteId }: { noteId: number }) {
               {priced ? <FileSpreadsheet size={15} /> : <Copy size={15} />}
               {priced ? 'Excel' : copied ? 'დაკოპირდა' : 'Word'}
             </button>}
-            {canShare && (
-              <button
-                type="button"
-                className="btn-ghost notes-share-btn"
-                onClick={() => setShareOpen(true)}
-              >
-                <UserPlus size={15} />
-                გაზიარება
-              </button>
-            )}
-          </div>
+          </div>}
         </header>
 
         {note.type === 'rich_text' ? (

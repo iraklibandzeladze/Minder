@@ -1,4 +1,4 @@
-import { Banknote, Lock, Plus, X } from 'lucide-react'
+import { Banknote, Lock, Plus, Trash2, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import {
@@ -173,9 +173,10 @@ export function NotesNav({
                 type="button"
                 className="btn-icon sheet-action"
                 title="წაშლა"
+                aria-label={`ნოუთის წაშლა: ${note.title}`}
                 onClick={() => requestDelete(note)}
               >
-                ×
+                <Trash2 size={14} />
               </button>
               )}
             </div>

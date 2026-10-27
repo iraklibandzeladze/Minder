@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Actions\SeedScheduleDefaults;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreScheduleBlockRequest;
 use App\Http\Resources\ScheduleBlockResource;
@@ -13,10 +12,9 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class ScheduleBlockController extends Controller
 {
-    public function index(Request $request, SeedScheduleDefaults $seed): AnonymousResourceCollection
+    public function index(Request $request): AnonymousResourceCollection
     {
         $user = $request->user();
-        $seed->handle($user);
 
         $blocks = $user->scheduleBlocks()
             ->with('template')

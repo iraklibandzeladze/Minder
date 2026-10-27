@@ -54,6 +54,7 @@ export function RichTextNoteEditor({ note, editable }: { note: Note; editable: b
   }
 
   const editor = useEditor({
+    immediatelyRender: false,
     extensions: [
       StarterKit.configure({ heading: { levels: [1, 2] }, link: false }),
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
@@ -74,10 +75,12 @@ export function RichTextNoteEditor({ note, editable }: { note: Note; editable: b
   })
   useEditorState({ editor, selector: ({ editor: current }) => current?.state })
 
-  useEffect(() => { editor?.setEditable(editable) }, [editor, editable])
+  useEffect(() => {
+    if (editor && !editor.isDestroyed) editor.setEditable(editable, false)
+  }, [editor, editable])
 
   useEffect(() => {
-    if (editor && !dirty.current && !save.isPending && editor.getHTML() !== (note.content ?? '<p></p>')) {
+    if (editor && !editor.isDestroyed && !dirty.current && !save.isPending && editor.getHTML() !== (note.content ?? '<p></p>')) {
       editor.commands.setContent(note.content ?? '', { emitUpdate: false })
     }
   }, [editor, note.content, save.isPending])
@@ -98,7 +101,7 @@ export function RichTextNoteEditor({ note, editable }: { note: Note; editable: b
     }
   }, [])
 
-  if (!editor) return null
+  if (!editor || editor.isDestroyed) return null
 
   const controls = [
     { label: 'გამუქება', Icon: Bold, active: editor.isActive('bold'), run: () => editor.chain().focus().toggleBold().run() },

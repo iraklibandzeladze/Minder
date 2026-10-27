@@ -8,15 +8,32 @@
   margin: 0 0 8px;
 }
 
-.notes-nav-btn {
-  gap: 8px;
+.notes-nav .sheet-nav-item {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.notes-nav .notes-nav-btn {
+  justify-content: flex-start;
+  text-align: left;
+  gap: 10px;
+}
+
+.notes-nav.sidebar-module .sheet-nav-actions {
+  position: static;
+  flex-shrink: 0;
+  padding-right: 6px;
+}
+
+.notes-nav .sheet-nav-item.active .sheet-nav-actions {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .notes-nav-ico {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 14px;
+  width: 18px;
   color: var(--muted);
   flex-shrink: 0;
 }
@@ -33,6 +50,8 @@
 }
 
 .notes-nav-label {
+  flex: 1;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -81,14 +100,29 @@
 
 .notes-page-head {
   display: grid;
-  gap: 16px;
-  margin-bottom: 22px;
-  padding-bottom: 18px;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
   border-bottom: 1px solid var(--border);
+}
+
+.notes-heading-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.notes-heading-row .notes-share-btn {
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .notes-title {
   width: 100%;
+  min-width: 0;
+  flex: 1;
   border: 0;
   background: transparent;
   color: var(--text-strong);
@@ -107,6 +141,7 @@
 
 .notes-toolbar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 12px;

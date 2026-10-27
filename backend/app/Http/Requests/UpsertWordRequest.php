@@ -27,6 +27,7 @@ class UpsertWordRequest extends FormRequest
             'english_word' => ['required', 'string', 'max:180'],
             'georgian_translation' => ['required', 'string', 'max:4000'],
             'example_sentence_en' => ['nullable', 'string', 'max:4000'],
+            'example_sentence_ka' => ['nullable', 'string', 'max:4000'],
             'category_ids' => ['sometimes', 'array'],
             'category_ids.*' => ['integer'],
         ];
