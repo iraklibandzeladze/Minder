@@ -9,7 +9,7 @@ import {
 import { SidebarSection } from '@/components/SidebarSection'
 import { FolderDialog } from '@/components/FolderDialog'
 import { FolderTree, ItemOrganizationMenu } from '@/components/FolderTree'
-import { CREATE_NOTE_EVENT } from '@/hooks/useFolders'
+import { CREATE_NOTE_EVENT, folderPath, useFolders, type CreateItemEventDetail } from '@/hooks/useFolders'
 import { UnlockModal } from '@/components/UnlockModal'
 import { useMe } from '@/hooks/useAuth'
 import { useCreateNote, useDeleteNote, useNotes } from '@/hooks/useNotes'
@@ -40,9 +40,15 @@ export function NotesNav({
   const deleteNote = useDeleteNote()
   const limit = useNotesSidebarLimit(userId)
   const [creating, setCreating] = useState(false)
+  const [creationFolderId, setCreationFolderId] = useState<number | null>(null)
+  const foldersQuery = useFolders()
   const [creatingFolder, setCreatingFolder] = useState(false)
   useEffect(() => {
-    const open = () => setCreating(true)
+    const open = (event: Event) => {
+      const detail = (event as CustomEvent<CreateItemEventDetail>).detail
+      setCreationFolderId(detail?.folderId ?? null)
+      setCreating(true)
+    }
     window.addEventListener(CREATE_NOTE_EVENT, open)
     return () => window.removeEventListener(CREATE_NOTE_EVENT, open)
   }, [])
@@ -92,6 +98,7 @@ export function NotesNav({
     setPasswordConfirmation('')
     setCreateError(null)
     setCreating(false)
+    setCreationFolderId(null)
   }
 
   async function create() {
@@ -116,6 +123,7 @@ export function NotesNav({
     try {
       const note = await createNote.mutateAsync({
         title: trimmed,
+        folder_id: creationFolderId,
         check_mode: 'checkbox',
         type: noteType,
         priced: noteType === 'checklist' && priced,
@@ -152,7 +160,7 @@ export function NotesNav({
         addLabel="ნოუთის დამატება"
         addDisabled={atNoteLimit}
         addTitle={atNoteLimit ? `ლიმიტი: ${limits?.max_notes} ნოუთი (უფასო გეგმა)` : 'ნოუთის დამატება'}
-        onAdd={() => setCreating(true)}
+        onAdd={() => { setCreationFolderId(null); setCreating(true) }}
         onAddFolder={() => setCreatingFolder(true)}
       >
         <div className="sheet-nav-list">
@@ -207,7 +215,7 @@ export function NotesNav({
         createPortal(
           <div className="dict-modal-backdrop" role="presentation" onClick={resetCreate}>
             <form
-              className="dict-form"
+              className="dict-form note-create-form"
               role="dialog"
               aria-modal="true"
               aria-labelledby="note-create-title"
@@ -223,6 +231,10 @@ export function NotesNav({
                   <X size={16} />
                 </button>
               </div>
+              {creationFolderId !== null && <p className="creation-folder-hint">საქაღალდე: {(() => {
+                const folder = foldersQuery.data?.find(f => f.id === creationFolderId)
+                return folder ? folderPath(foldersQuery.data ?? [], folder) : 'იტვირთება…'
+              })()}</p>}
               <label>
                 სახელი
                 <input
@@ -245,6 +257,7 @@ export function NotesNav({
                   </button>
                 ))}
               </div>
+              {(noteType === 'checklist' || canPassword) && <div className={`note-create-options ${noteType === 'checklist' && canPassword ? 'has-two-options' : ''}`}>
               {noteType === 'checklist' && <div className={`pwd-protect ${priced ? 'is-on' : ''}`}>
                 <button
                   type="button"
@@ -266,6 +279,7 @@ export function NotesNav({
               </div>}
               {canPassword && (
                 <PasswordProtectFields
+                  panelPlacement="after"
                   enabled={passwordProtected}
                   onEnabledChange={setPasswordProtected}
                   password={password}
@@ -274,13 +288,14 @@ export function NotesNav({
                   onConfirmationChange={setPasswordConfirmation}
                 />
               )}
+              </div>}
               {createError && <p className="error">{createError}</p>}
               <div className="dict-form-actions">
-                <button type="submit" className="btn-primary" disabled={createNote.isPending}>
-                  {createNote.isPending ? 'იქმნება…' : 'შექმნა'}
-                </button>
                 <button type="button" className="btn-ghost" onClick={resetCreate}>
                   გაუქმება
+                </button>
+                <button type="submit" className="btn-primary" disabled={createNote.isPending}>
+                  {createNote.isPending ? 'იქმნება…' : 'შექმნა'}
                 </button>
               </div>
             </form>

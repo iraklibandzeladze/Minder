@@ -50,7 +50,9 @@ export function PasswordProtectFields({
   onPasswordChange,
   confirmation,
   onConfirmationChange,
+  panelPlacement = 'inside',
 }: {
+  panelPlacement?: 'inside' | 'after'
   enabled: boolean
   onEnabledChange: (value: boolean) => void
   password: string
@@ -63,7 +65,30 @@ export function PasswordProtectFields({
   const matched =
     enabled && password.length >= 4 && confirmation.length >= 4 && password === confirmation
 
+  const panel = enabled ? (
+    <div className="pwd-protect-panel">
+      <p className="pwd-protect-hint">შიგთავსი გაიხსნება მხოლოდ პაროლით.</p>
+      <PasswordInput
+        label="პაროლი"
+        value={password}
+        onChange={onPasswordChange}
+        autoComplete="new-password"
+        placeholder="მინიმუმ 4 სიმბოლო"
+      />
+      <PasswordInput
+        label="გამეორება"
+        value={confirmation}
+        onChange={onConfirmationChange}
+        autoComplete="new-password"
+        placeholder="იგივე პაროლი"
+      />
+      {mismatch && <p className="pwd-protect-status is-bad">პაროლები არ ემთხვევა</p>}
+      {matched && <p className="pwd-protect-status is-ok">პაროლები ემთხვევა</p>}
+    </div>
+  ) : null
+
   return (
+    <>
     <div className={`pwd-protect ${enabled ? 'is-on' : ''}`}>
       <button
         type="button"
@@ -90,28 +115,10 @@ export function PasswordProtectFields({
         </span>
       </button>
 
-      {enabled && (
-        <div className="pwd-protect-panel">
-          <p className="pwd-protect-hint">შიგთავსი გაიხსნება მხოლოდ პაროლით.</p>
-          <PasswordInput
-            label="პაროლი"
-            value={password}
-            onChange={onPasswordChange}
-            autoComplete="new-password"
-            placeholder="მინიმუმ 4 სიმბოლო"
-          />
-          <PasswordInput
-            label="გამეორება"
-            value={confirmation}
-            onChange={onConfirmationChange}
-            autoComplete="new-password"
-            placeholder="იგივე პაროლი"
-          />
-          {mismatch && <p className="pwd-protect-status is-bad">პაროლები არ ემთხვევა</p>}
-          {matched && <p className="pwd-protect-status is-ok">პაროლები ემთხვევა</p>}
-        </div>
-      )}
+      {panelPlacement === 'inside' && panel}
     </div>
+    {panelPlacement === 'after' && panel}
+    </>
   )
 }
 

@@ -269,6 +269,7 @@ export function useCreateSheet() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (input: {
+      folder_id?: number | null
       name: string
       kind: 'table' | 'monthly_expenses' | 'calculator'
       reminders_enabled?: boolean
@@ -281,6 +282,7 @@ export function useCreateSheet() {
           method: 'POST',
           body: JSON.stringify({
             name: input.name,
+            folder_id: input.folder_id,
             kind: input.kind,
             reminders_enabled: input.reminders_enabled ?? false,
             password_protected: input.password_protected ?? false,

@@ -9,7 +9,7 @@ import {
 import { SidebarSection } from '@/components/SidebarSection'
 import { FolderDialog } from '@/components/FolderDialog'
 import { FolderTree, ItemOrganizationMenu } from '@/components/FolderTree'
-import { CREATE_TABLE_EVENT } from '@/hooks/useFolders'
+import { CREATE_TABLE_EVENT, folderPath, useFolders, type CreateItemEventDetail } from '@/hooks/useFolders'
 import { UnlockModal } from '@/components/UnlockModal'
 import { useMe } from '@/hooks/useAuth'
 import { useCreateSheet, useDeleteSheet, useUpdateSheet } from '@/hooks/useLedger'
@@ -49,9 +49,15 @@ export function SheetTabs({
   const deleteSheet = useDeleteSheet()
   const limit = useSheetsSidebarLimit(userId)
   const [creating, setCreating] = useState(false)
+  const [creationFolderId, setCreationFolderId] = useState<number | null>(null)
+  const foldersQuery = useFolders()
   const [creatingFolder, setCreatingFolder] = useState(false)
   useEffect(() => {
-    const open = () => setCreating(true)
+    const open = (event: Event) => {
+      const detail = (event as CustomEvent<CreateItemEventDetail>).detail
+      setCreationFolderId(detail?.folderId ?? null)
+      setCreating(true)
+    }
     window.addEventListener(CREATE_TABLE_EVENT, open)
     return () => window.removeEventListener(CREATE_TABLE_EVENT, open)
   }, [])
@@ -98,6 +104,7 @@ export function SheetTabs({
     setPasswordConfirmation('')
     setCreateError(null)
     setCreating(false)
+    setCreationFolderId(null)
   }
 
   async function create() {
@@ -122,6 +129,7 @@ export function SheetTabs({
     try {
       const sheet = await createSheet.mutateAsync({
         name: trimmed,
+        folder_id: creationFolderId,
         kind: 'table',
         ...passwordPayload(
           canPassword && passwordProtected,
@@ -166,7 +174,7 @@ export function SheetTabs({
         addLabel="ცხრილის დამატება"
         addDisabled={atSheetLimit}
         addTitle={atSheetLimit ? `ლიმიტი: ${limits?.max_sheets} ცხრილი (უფასო გეგმა)` : 'ცხრილის დამატება'}
-        onAdd={() => setCreating(true)}
+        onAdd={() => { setCreationFolderId(null); setCreating(true) }}
         onAddFolder={() => setCreatingFolder(true)}
       >
         <div className="sheet-nav-list">
@@ -274,6 +282,10 @@ export function SheetTabs({
                   <X size={16} />
                 </button>
               </div>
+              {creationFolderId !== null && <p className="creation-folder-hint">საქაღალდე: {(() => {
+                const folder = foldersQuery.data?.find(f => f.id === creationFolderId)
+                return folder ? folderPath(foldersQuery.data ?? [], folder) : 'იტვირთება…'
+              })()}</p>}
               <label>
                 სახელი
                 <input

@@ -504,3 +504,18 @@
 .rich-note-content code { font-family: monospace; }
 .rich-note-content blockquote { border-left: 3px solid var(--border); padding-left: 1em; margin-left: 0; }
 .rich-note-status { font-size: 0.8rem; min-height: 26px; text-align: right; }
+
+.note-create-options { display: grid; gap: 12px; align-items: start; }
+.note-create-options.has-two-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.note-create-options > .pwd-protect-panel { grid-column: 1 / -1; border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
+.note-create-options .pwd-protect { min-width: 0; }
+.note-create-options .pwd-protect-toggle { min-height: 66px; }
+.dict-form.note-create-form .dict-form-actions,
+.dict-form.folder-form .dict-form-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 520px) {
+  .note-create-options .pwd-protect-toggle { grid-template-columns: minmax(0, 1fr) auto; gap: 6px; padding: 10px 8px; }
+  .note-create-options .pwd-protect-icon { display: none; }
+  .note-create-options .pwd-protect-copy strong { font-size: .78rem; }
+  .note-create-options .pwd-protect-copy span { font-size: .7rem; }
+}
+@media (max-width: 340px) { .note-create-options.has-two-options { grid-template-columns: 1fr; } }
