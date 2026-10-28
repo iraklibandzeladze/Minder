@@ -7,6 +7,9 @@ import {
   validatePasswordProtect,
 } from '@/components/PasswordProtectFields'
 import { SidebarSection } from '@/components/SidebarSection'
+import { FolderDialog } from '@/components/FolderDialog'
+import { FolderTree, ItemOrganizationMenu } from '@/components/FolderTree'
+import { CREATE_NOTE_EVENT } from '@/hooks/useFolders'
 import { UnlockModal } from '@/components/UnlockModal'
 import { useMe } from '@/hooks/useAuth'
 import { useCreateNote, useDeleteNote, useNotes } from '@/hooks/useNotes'
@@ -37,6 +40,12 @@ export function NotesNav({
   const deleteNote = useDeleteNote()
   const limit = useNotesSidebarLimit(userId)
   const [creating, setCreating] = useState(false)
+  const [creatingFolder, setCreatingFolder] = useState(false)
+  useEffect(() => {
+    const open = () => setCreating(true)
+    window.addEventListener(CREATE_NOTE_EVENT, open)
+    return () => window.removeEventListener(CREATE_NOTE_EVENT, open)
+  }, [])
   const [title, setTitle] = useState('')
   const [noteType, setNoteType] = useState<NoteType>('checklist')
   const [priced, setPriced] = useState(false)
@@ -109,7 +118,7 @@ export function NotesNav({
         title: trimmed,
         check_mode: 'checkbox',
         type: noteType,
-        priced,
+        priced: noteType === 'checklist' && priced,
         ...passwordPayload(
           canPassword && passwordProtected,
           password,
@@ -144,9 +153,10 @@ export function NotesNav({
         addDisabled={atNoteLimit}
         addTitle={atNoteLimit ? `ლიმიტი: ${limits?.max_notes} ნოუთი (უფასო გეგმა)` : 'ნოუთის დამატება'}
         onAdd={() => setCreating(true)}
+        onAddFolder={() => setCreatingFolder(true)}
       >
         <div className="sheet-nav-list">
-          {visible.map((note: Note) => (
+          <FolderTree type="notes" items={visible} renderItem={(note) => (
             <div
               key={note.id}
               className={`sheet-nav-item ${note.id === activeId ? 'active' : ''}`}
@@ -163,6 +173,7 @@ export function NotesNav({
                 <span className="notes-nav-label">{note.title}</span>
               </button>
               <div className="sheet-nav-actions">
+                <ItemOrganizationMenu type="notes" item={note} />
                 {(note.is_owner !== false) && (
                 <button
                   type="button"
@@ -176,7 +187,7 @@ export function NotesNav({
                 )}
               </div>
             </div>
-          ))}
+          )} />
         </div>
 
         {needsCollapse && (
@@ -189,6 +200,8 @@ export function NotesNav({
           </button>
         )}
       </SidebarSection>
+
+      {creatingFolder && <FolderDialog type="notes" onClose={() => setCreatingFolder(false)} />}
 
       {creating &&
         createPortal(
@@ -232,7 +245,7 @@ export function NotesNav({
                   </button>
                 ))}
               </div>
-              <div className={`pwd-protect ${priced ? 'is-on' : ''}`}>
+              {noteType === 'checklist' && <div className={`pwd-protect ${priced ? 'is-on' : ''}`}>
                 <button
                   type="button"
                   className="pwd-protect-toggle"
@@ -250,7 +263,7 @@ export function NotesNav({
                     <span className="pwd-switch-thumb" />
                   </span>
                 </button>
-              </div>
+              </div>}
               {canPassword && (
                 <PasswordProtectFields
                   enabled={passwordProtected}

@@ -21,6 +21,10 @@ class SheetResource extends JsonResource
 
         return [
             'id' => $this->id,
+            'folder_id' => $isOwner ? $this->folder_id : null,
+            'is_pinned' => (bool) $this->is_pinned,
+            'created_at' => $this->created_at?->toIso8601String(),
+            'updated_at' => $this->updated_at?->toIso8601String(),
             'name' => $this->name,
             'slug' => $this->slug,
             'kind' => $this->kind,

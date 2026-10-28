@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import {
   CalendarDays,
+  LayoutDashboard,
   ChevronLeft,
   Crown,
   ChevronRight,
@@ -13,6 +14,8 @@ import {
   Sun,
   X,
 } from 'lucide-react'
+import { DashboardView } from '@/components/DashboardView'
+import { TablePasswordRecovery } from '@/components/TablePasswordRecovery'
 import { DictionaryView } from '@/components/DictionaryView'
 import { NotesNav } from '@/components/NotesNav'
 import { NotesView } from '@/components/NotesView'
@@ -44,6 +47,14 @@ import {
 } from '@/lib/sessionPrefs'
 import type { AppView, User } from '@/lib/types'
 
+function viewFromPath(): AppView | null {
+  const path = window.location.pathname.slice(1)
+  if (!path || path === 'dashboard') return 'dashboard'
+  if (path === 'tables') return 'sheet'
+  if (['schedule', 'notes', 'profile', 'settings', 'admin', 'dictionary'].includes(path)) return path as AppView
+  return null
+}
+
 function isTableLike(kind: string | undefined): boolean {
   return kind === 'monthly_expenses' || kind === 'calculator' || kind === 'table'
 }
@@ -63,19 +74,22 @@ export function MinderApp({ user }: { user: User }) {
     readActiveNoteId(user.id),
   )
   const [activeView, setActiveViewState] = useState<AppView>(() =>
-    readActiveView(user.id),
+    viewFromPath() ?? readActiveView(user.id),
   )
   const [sheetsOpen, setSheetsOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() =>
     readSidebarCollapsed(user.id),
   )
+  const [recoveringSheet, setRecoveringSheet] = useState(false)
   const logout = useLogout()
   const sheets = useSheets()
   const notes = useNotes()
   const unlockNote = useUnlockNote()
   const lockNote = useLockNote()
+  const lockNoteOnBack = lockNote.mutate
   const unlockSheet = useUnlockSheet()
   const lockSheet = useLockSheet()
+  const lockSheetOnBack = lockSheet.mutate
   const { theme, toggleTheme } = useTheme()
 
   useEffect(() => {
@@ -92,6 +106,7 @@ export function MinderApp({ user }: { user: User }) {
 
   const sheetList = sheets.data ?? []
   const noteList = notes.data ?? []
+  const showingDashboard = activeView === 'dashboard'
   const showingSchedule = activeView === 'schedule'
   const showingNotes = activeView === 'notes'
   const showingSheet = activeView === 'sheet'
@@ -134,6 +149,8 @@ export function MinderApp({ user }: { user: User }) {
   function setActiveView(view: AppView) {
     setActiveViewState(view)
     writeActiveView(user.id, view)
+    const path = view === 'sheet' ? '/tables' : `/${view}`
+    if (window.location.pathname !== path) window.history.pushState({}, '', path)
   }
 
   function setYearMonth(next: string | ((prev: string) => string)) {
@@ -143,6 +160,28 @@ export function MinderApp({ user }: { user: User }) {
       return value
     })
   }
+
+  useEffect(() => {
+    if (window.location.pathname === '/') window.history.replaceState({}, '', '/dashboard')
+    const initialView = viewFromPath()
+    if (initialView) writeActiveView(user.id, initialView)
+    const onBack = () => {
+      const view = viewFromPath() ?? 'dashboard'
+      const previous = readActiveView(user.id)
+      if (previous === 'notes' && view !== 'notes') {
+        const note = notes.data?.find(item => item.id === readActiveNoteId(user.id))
+        if (note?.is_locked && note.is_unlocked) lockNoteOnBack(note.id)
+      }
+      if (previous === 'sheet' && view !== 'sheet') {
+        const sheet = sheets.data?.find(item => item.id === readActiveSheetId(user.id))
+        if (sheet?.is_locked && sheet.is_unlocked) lockSheetOnBack(sheet.id)
+      }
+      setActiveViewState(view)
+      writeActiveView(user.id, view)
+    }
+    window.addEventListener('popstate', onBack)
+    return () => window.removeEventListener('popstate', onBack)
+  }, [user.id, notes.data, sheets.data, lockNoteOnBack, lockSheetOnBack])
 
   useEffect(() => {
     if (sheets.isLoading || sheets.isPending) return
@@ -207,6 +246,13 @@ export function MinderApp({ user }: { user: User }) {
     if (sheet?.is_locked && sheet.is_unlocked) {
       lockSheet.mutate(sheet.id)
     }
+  }
+
+  function selectDashboard() {
+    lockCurrentNote()
+    lockCurrentSheet()
+    setActiveView('dashboard')
+    setSheetsOpen(false)
   }
 
   function selectSchedule() {
@@ -277,7 +323,7 @@ export function MinderApp({ user }: { user: User }) {
   const showMonthNav =
     showingSheet && !sheetNeedsUnlock && (usesMonth(activeSheet?.kind) || !activeSheet)
 
-  const mobileLabel = showingProfile
+  const mobileLabel = showingDashboard ? 'დეშბორდი' : showingProfile
     ? 'პროფილი'
     : showingSettings
       ? 'პარამეტრები'
@@ -316,6 +362,7 @@ export function MinderApp({ user }: { user: User }) {
         </div>
 
         <nav className="sidebar-nav">
+          <div className="sidebar-group"><button type="button" className={`sidebar-link ${showingDashboard ? 'active' : ''}`} onClick={selectDashboard}><LayoutDashboard size={18} /><span>დეშბორდი</span></button></div>
           <div className="sidebar-group">
             <button
               type="button"
@@ -437,6 +484,7 @@ export function MinderApp({ user }: { user: User }) {
       </header>
 
         <div className="main-col">
+          {showingDashboard && <DashboardView notes={noteList} sheets={sheetList} loading={notes.isLoading || sheets.isLoading} error={notes.isError || sheets.isError} onNote={selectNote} onSheet={selectSheet} />}
           {showingProfile && <ProfileView user={user} />}
           {showingSettings && <SettingsView userId={user.id} />}
           {showingAdmin && user.is_admin && <AdminView />}
@@ -493,10 +541,12 @@ export function MinderApp({ user }: { user: User }) {
           }}
         />
       )}
-      {sheetNeedsUnlock && activeSheet && (
+      {recoveringSheet && activeSheet && <TablePasswordRecovery sheet={activeSheet} onClose={() => setRecoveringSheet(false)} />}
+      {sheetNeedsUnlock && activeSheet && !recoveringSheet && (
         <UnlockModal
           title={activeSheet.name}
           kindLabel="ცხრილი დაცულია"
+          onForgot={activeSheet.is_owner ? () => setRecoveringSheet(true) : undefined}
           busy={unlockSheet.isPending}
           onClose={cancelUnlock}
           onSubmit={async (password) => {

@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\SheetResource;
 use App\Http\Resources\SheetRowResource;
 use App\Models\Sheet;
+use App\Support\ItemFolder;
 use App\Support\PlanLimits;
 use App\Support\ResourceUnlock;
 use App\Support\ShareAccess;
@@ -31,6 +32,7 @@ class SheetController extends Controller
     public function store(Request $request, SeedSheetDefaults $seed): JsonResponse
     {
         $data = $request->validate([
+            'folder_id' => ItemFolder::rules($request->user(), 'tables'),
             'name' => ['required', 'string', 'max:80'],
             'kind' => ['required', Rule::in(['table', 'monthly_expenses', 'calculator'])],
             'reminders_enabled' => ['sometimes', 'boolean'],
@@ -68,6 +70,7 @@ class SheetController extends Controller
         $sheet = DB::transaction(function () use ($user, $data, $slug, $kind, $seed, $protected, $password) {
             $sheet = $user->sheets()->create([
                 'name' => $data['name'],
+                'folder_id' => $data['folder_id'] ?? null,
                 'slug' => $slug,
                 'kind' => $kind,
                 'position' => (int) $user->sheets()->max('position') + 1,
@@ -88,10 +91,13 @@ class SheetController extends Controller
     {
         $this->authorize('update', $sheet);
         $data = $request->validate([
+            'folder_id' => ItemFolder::rules($request->user(), 'tables'),
+            'is_pinned' => ['sometimes', 'boolean'],
             'name' => ['sometimes', 'string', 'max:80'],
             'budget' => ['sometimes', 'nullable', 'numeric'],
             'reminders_enabled' => ['sometimes', 'boolean'],
         ]);
+        ItemFolder::authorizeMetadata($request->user(), $sheet, $data);
         $sheet->update($data);
 
         return new SheetResource($sheet);

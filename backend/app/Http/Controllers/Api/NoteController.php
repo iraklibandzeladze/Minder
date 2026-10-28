@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreNoteRequest;
 use App\Http\Resources\NoteResource;
 use App\Models\Note;
+use App\Support\ItemFolder;
 use App\Support\PlanLimits;
 use App\Support\ResourceUnlock;
 use App\Support\ShareAccess;
@@ -47,10 +48,12 @@ class NoteController extends Controller
 
         $note = $user->notes()->create([
             'title' => $data['title'],
+            'folder_id' => $data['folder_id'] ?? null,
+            'is_pinned' => $data['is_pinned'] ?? false,
             'type' => $data['type'] ?? 'checklist',
             'content' => $data['content'] ?? null,
             'check_mode' => $data['check_mode'],
-            'priced' => (bool) ($data['priced'] ?? false),
+            'priced' => ($data['type'] ?? 'checklist') === 'checklist' && (bool) ($data['priced'] ?? false),
             'position' => $data['position'] ?? ((int) $user->notes()->max('position') + 1),
             'password_hash' => $protected && filled($password) ? Hash::make($password) : null,
         ]);
@@ -76,8 +79,14 @@ class NoteController extends Controller
     public function update(StoreNoteRequest $request, Note $note): NoteResource
     {
         $this->authorize('update', $note);
-        ResourceUnlock::abortUnlessNoteUnlocked($note, $request->user());
         $data = $request->validated();
+        if (array_diff(array_keys($data), ['folder_id', 'is_pinned'])) {
+            ResourceUnlock::abortUnlessNoteUnlocked($note, $request->user());
+        }
+        ItemFolder::authorizeMetadata($request->user(), $note, $data);
+        if (($data['type'] ?? $note->type) === 'rich_text') {
+            $data['priced'] = false;
+        }
         unset($data['password'], $data['password_protected'], $data['password_confirmation']);
 
         DB::transaction(function () use ($note, $data) {

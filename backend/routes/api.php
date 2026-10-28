@@ -5,9 +5,11 @@ use App\Http\Controllers\Api\AdminUserController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\CustomColumnController;
+use App\Http\Controllers\Api\FolderController;
 use App\Http\Controllers\Api\MonthController;
 use App\Http\Controllers\Api\NoteController;
 use App\Http\Controllers\Api\NoteItemController;
+use App\Http\Controllers\Api\PasswordRecoveryController;
 use App\Http\Controllers\Api\ProRequestController;
 use App\Http\Controllers\Api\QuickEntryController;
 use App\Http\Controllers\Api\RecurringTemplateController;
@@ -21,11 +23,17 @@ use App\Http\Controllers\Api\WordCategoryController;
 use App\Http\Controllers\Api\WordController;
 use Illuminate\Support\Facades\Route;
 
+Route::post('/forgot-password', [PasswordRecoveryController::class, 'forgot'])->middleware('throttle:5,1');
+Route::post('/reset-password', [PasswordRecoveryController::class, 'reset'])->middleware('throttle:5,1');
+
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/invites/{token}', [ResourceShareController::class, 'preview']);
 
 Route::middleware(['auth:sanctum', 'not.blocked'])->group(function () {
+    Route::apiResource('folders', FolderController::class)->except(['show', 'destroy']);
+    Route::delete('/folders/{folder}', [FolderController::class, 'destroy'])->middleware('throttle:5,1');
+    Route::post('/sheets/{sheet}/recover-password', [PasswordRecoveryController::class, 'sheet'])->middleware('throttle:5,1');
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
     Route::patch('/me', [AuthController::class, 'update']);
@@ -37,7 +45,6 @@ Route::middleware(['auth:sanctum', 'not.blocked'])->group(function () {
         Route::get('/users', [AdminUserController::class, 'index']);
         Route::patch('/users/{user}', [AdminUserController::class, 'update']);
     });
-
 
     Route::post('/invites/{token}/accept', [ResourceShareController::class, 'accept']);
     Route::get('/shares', [ResourceShareController::class, 'index']);

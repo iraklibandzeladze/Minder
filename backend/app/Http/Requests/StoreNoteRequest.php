@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Support\ItemFolder;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -17,6 +18,8 @@ class StoreNoteRequest extends FormRequest
         $required = $this->isMethod('post') ? 'required' : 'sometimes';
 
         return [
+            'folder_id' => ItemFolder::rules($this->user(), 'notes'),
+            'is_pinned' => ['sometimes', 'boolean'],
             'title' => [$required, 'string', 'max:120'],
             'check_mode' => [$required, 'string', Rule::in(['checkbox', 'radio'])],
             'type' => ['sometimes', 'string', Rule::in(['checklist', 'rich_text'])],

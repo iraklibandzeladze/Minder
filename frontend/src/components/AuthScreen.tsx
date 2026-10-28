@@ -172,6 +172,7 @@ export function AuthScreen({
           />
         </label>
 
+        {mode === 'login' && <a href="/forgot-password" className="btn-ghost">დაგავიწყდა პაროლი?</a>}
         {error && <p className="error">{error}</p>}
 
         <button type="submit" className="btn-primary" disabled={busy}>

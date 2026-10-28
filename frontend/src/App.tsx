@@ -1,3 +1,4 @@
+import { PasswordRecoveryPage } from '@/components/PasswordRecoveryPage'
 import { AuthScreen } from '@/components/AuthScreen'
 import { InviteAcceptPage } from '@/components/InviteAcceptPage'
 import { MinderApp } from '@/components/MinderApp'
@@ -7,6 +8,9 @@ import { readInviteTokenFromPath } from '@/hooks/useShares'
 export default function App() {
   const me = useMe()
   const inviteToken = readInviteTokenFromPath()
+
+  if (window.location.pathname === '/forgot-password') return <PasswordRecoveryPage />
+  if (window.location.pathname === '/reset-password') return <PasswordRecoveryPage reset />
 
   if (me.isLoading) {
     return (

@@ -11,7 +11,7 @@ export const DEFAULT_SIDEBAR_LIST_LIMIT = 5
 export const MIN_SIDEBAR_LIST_LIMIT = 1
 export const MAX_SIDEBAR_LIST_LIMIT = 50
 
-export type StoredAppView = 'schedule' | 'notes' | 'sheet' | 'profile' | 'settings' | 'admin' | 'dictionary'
+export type StoredAppView = 'dashboard' | 'schedule' | 'notes' | 'sheet' | 'profile' | 'settings' | 'admin' | 'dictionary'
 
 function clampSidebarLimit(value: number): number {
   if (!Number.isFinite(value)) return DEFAULT_SIDEBAR_LIST_LIMIT
@@ -57,6 +57,7 @@ export function writeSidebarCollapsed(userId: number, collapsed: boolean): void 
 export function readActiveView(userId: number): StoredAppView {
   const raw = localStorage.getItem(viewKey(userId))
   if (
+    raw === 'dashboard' ||
     raw === 'schedule' ||
     raw === 'notes' ||
     raw === 'sheet' ||
@@ -67,7 +68,7 @@ export function readActiveView(userId: number): StoredAppView {
   ) {
     return raw
   }
-  return 'sheet'
+  return 'dashboard'
 }
 
 export function writeActiveView(userId: number, view: StoredAppView): void {

@@ -24,6 +24,7 @@ export function useCreateNote() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (input: {
+      folder_id?: number | null
       title: string
       type?: NoteType
       content?: string | null
@@ -91,6 +92,8 @@ export function useUpdateNote() {
       ...patch
     }: {
       id: number
+      folder_id?: number | null
+      is_pinned?: boolean
       title?: string
       type?: NoteType
       content?: string | null

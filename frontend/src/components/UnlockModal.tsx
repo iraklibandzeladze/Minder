@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { Eye, EyeOff, LockKeyhole, Trash2 } from 'lucide-react'
 import { ApiError } from '@/lib/api'
@@ -13,8 +13,12 @@ export function UnlockModal({
   busy,
   onClose,
   onSubmit,
+  footer,
+  onForgot,
 }: {
   title: string
+  footer?: ReactNode
+  onForgot?: () => void
   kindLabel?: string
   hint?: string
   submitLabel?: string
@@ -46,7 +50,7 @@ export function UnlockModal({
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
-    const trimmed = password.trim()
+    const trimmed = password
     if (trimmed.length < 4) {
       setError('პაროლი მინიმუმ 4 სიმბოლო უნდა იყოს.')
       return
@@ -113,6 +117,8 @@ export function UnlockModal({
           </div>
         </label>
 
+        {onForgot && <button type="button" className="btn-ghost" onClick={onForgot}>დაგავიწყდა ცხრილის პაროლი?</button>}
+        {footer}
         {error && <p className="error lock-dialog-error">{error}</p>}
 
         <div className="lock-dialog-actions">
@@ -122,7 +128,7 @@ export function UnlockModal({
           <button
             type="submit"
             className={variant === 'danger' ? 'btn-danger' : 'btn-primary'}
-            disabled={busy || password.trim().length < 4}
+            disabled={busy || password.length < 4}
           >
             {busy ? busyLabel : submitLabel}
           </button>

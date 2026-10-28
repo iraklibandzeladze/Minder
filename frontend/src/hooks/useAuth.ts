@@ -16,10 +16,10 @@ const SOCIAL_ERROR_MESSAGES: Record<string, string> = {
 
 /**
  * Full-page redirect to the backend OAuth entry point. The callback logs the user
- * into the same Sanctum cookie session and bounces back to the current SPA path.
+ * into the same Sanctum cookie session and returns to the dashboard or invitation.
  */
 export function startSocialLogin(provider: SocialProvider): void {
-  const returnPath = window.location.pathname + window.location.search
+  const returnPath = window.location.pathname.startsWith('/invite') ? window.location.pathname + window.location.search : '/dashboard'
   const url = new URL(`${API_URL}/auth/${provider}/redirect`)
   if (returnPath !== '/') url.searchParams.set('return', returnPath)
   window.location.assign(url.toString())
@@ -58,6 +58,10 @@ export function useLogin() {
       })
     },
     onSuccess: (payload) => {
+      if (!window.location.pathname.startsWith('/invite')) {
+        window.history.replaceState({}, '', '/dashboard')
+        localStorage.setItem(`minder-active-view:${payload.user.id}`, 'dashboard')
+      }
       queryClient.setQueryData(['me'], payload.user)
     },
   })
@@ -79,6 +83,10 @@ export function useRegister() {
       })
     },
     onSuccess: (payload) => {
+      if (!window.location.pathname.startsWith('/invite')) {
+        window.history.replaceState({}, '', '/dashboard')
+        localStorage.setItem(`minder-active-view:${payload.user.id}`, 'dashboard')
+      }
       queryClient.setQueryData(['me'], payload.user)
     },
   })

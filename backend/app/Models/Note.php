@@ -11,6 +11,8 @@ class Note extends Model
 {
     protected $fillable = [
         'user_id',
+        'folder_id',
+        'is_pinned',
         'title',
         'type',
         'content',
@@ -28,6 +30,8 @@ class Note extends Model
     {
         return [
             'position' => 'integer',
+            'folder_id' => 'integer',
+            'is_pinned' => 'boolean',
             'priced' => 'boolean',
         ];
     }

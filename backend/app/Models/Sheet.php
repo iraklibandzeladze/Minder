@@ -11,6 +11,8 @@ class Sheet extends Model
 {
     protected $fillable = [
         'user_id',
+        'folder_id',
+        'is_pinned',
         'name',
         'slug',
         'kind',
@@ -29,6 +31,8 @@ class Sheet extends Model
     {
         return [
             'position' => 'integer',
+            'folder_id' => 'integer',
+            'is_pinned' => 'boolean',
             'is_default' => 'boolean',
             'budget' => 'decimal:2',
             'reminders_enabled' => 'boolean',

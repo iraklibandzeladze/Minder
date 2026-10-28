@@ -40,6 +40,7 @@ class RichTextNoteTest extends TestCase
         $legacy = $owner->notes()->create(['title' => 'ძველი', 'check_mode' => 'checkbox']);
         (require database_path('migrations/2026_10_27_120000_add_rich_text_to_notes.php'))->up();
         $this->assertSame('checklist', $legacy->fresh()->type);
+        (require database_path('migrations/2026_10_28_100000_create_folders_and_item_metadata.php'))->up();
         Sanctum::actingAs($owner);
     }
 
@@ -51,7 +52,7 @@ class RichTextNoteTest extends TestCase
         $html = '<h1>სათაური</h1><p><strong>ტექსტი</strong></p>';
         $created = $this->postJson('/api/notes', [
             'title' => 'დოკუმენტი', 'check_mode' => 'checkbox', 'type' => 'rich_text', 'content' => $html, 'priced' => true,
-        ])->assertCreated()->assertJsonPath('data.content', $html)->assertJsonPath('data.priced', true)
+        ])->assertCreated()->assertJsonPath('data.content', $html)->assertJsonPath('data.priced', false)
             ->assertJsonCount(0, 'data.items');
         $id = $created->json('data.id');
         $this->putJson("/api/notes/{$id}", ['content' => '<p>შეცვლილი</p>'])

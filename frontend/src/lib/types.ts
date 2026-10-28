@@ -4,7 +4,7 @@ export type ColumnType = 'number' | 'text' | 'select' | 'status' | 'date' | 'for
 export type ColumnRole = 'payable' | 'paid' | 'remaining' | null
 export type SheetKind = 'ledger' | 'table' | 'monthly_expenses' | 'calculator'
 export type ThemeMode = 'night' | 'day'
-export type AppView = 'schedule' | 'notes' | 'sheet' | 'profile' | 'settings' | 'admin' | 'dictionary'
+export type AppView = 'dashboard' | 'schedule' | 'notes' | 'sheet' | 'profile' | 'settings' | 'admin' | 'dictionary'
 export type NoteType = 'checklist' | 'rich_text'
 export type NoteCheckMode = 'checkbox' | 'radio'
 export type ShareRole = 'moderator' | 'viewer'
@@ -85,6 +85,10 @@ export interface Category {
 }
 
 export interface Sheet {
+  folder_id: number | null
+  is_pinned: boolean
+  created_at: string | null
+  updated_at: string | null
   id: number
   name: string
   slug: string
@@ -260,7 +264,22 @@ export interface NoteItem {
   position: number
 }
 
+export type FolderType = 'notes' | 'tables'
+export interface Folder {
+  id: number
+  user_id: number
+  name: string
+  type: FolderType
+  parent_id: number | null
+  created_at: string
+  updated_at: string
+}
+
 export interface Note {
+  folder_id: number | null
+  is_pinned: boolean
+  created_at: string | null
+  updated_at: string | null
   id: number
   title: string
   type: NoteType

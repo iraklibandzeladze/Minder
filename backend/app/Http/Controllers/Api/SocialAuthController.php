@@ -40,7 +40,7 @@ class SocialAuthController extends Controller
     {
         $this->assertProvider($provider);
 
-        $returnPath = (string) $request->session()->pull(self::RETURN_KEY, '/');
+        $returnPath = (string) $request->session()->pull(self::RETURN_KEY, '/dashboard');
 
         if ($request->query('error') !== null) {
             // User cancelled on the provider's consent screen.
@@ -73,7 +73,7 @@ class SocialAuthController extends Controller
     private function assertProvider(string $provider): void
     {
         if (! in_array($provider, self::PROVIDERS, true)) {
-            throw new NotFoundHttpException();
+            throw new NotFoundHttpException;
         }
     }
 
@@ -97,12 +97,12 @@ class SocialAuthController extends Controller
     private function sanitizeReturnPath(mixed $raw): string
     {
         if (! is_string($raw) || $raw === '') {
-            return '/';
+            return '/dashboard';
         }
         if (! Str::startsWith($raw, '/') || Str::startsWith($raw, '//') || str_contains($raw, '\\')) {
-            return '/';
+            return '/dashboard';
         }
 
-        return Str::limit($raw, 512, '');
+        return $raw === '/' ? '/dashboard' : Str::limit($raw, 512, '');
     }
 }

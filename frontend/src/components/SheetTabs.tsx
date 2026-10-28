@@ -7,6 +7,9 @@ import {
   validatePasswordProtect,
 } from '@/components/PasswordProtectFields'
 import { SidebarSection } from '@/components/SidebarSection'
+import { FolderDialog } from '@/components/FolderDialog'
+import { FolderTree, ItemOrganizationMenu } from '@/components/FolderTree'
+import { CREATE_TABLE_EVENT } from '@/hooks/useFolders'
 import { UnlockModal } from '@/components/UnlockModal'
 import { useMe } from '@/hooks/useAuth'
 import { useCreateSheet, useDeleteSheet, useUpdateSheet } from '@/hooks/useLedger'
@@ -46,6 +49,12 @@ export function SheetTabs({
   const deleteSheet = useDeleteSheet()
   const limit = useSheetsSidebarLimit(userId)
   const [creating, setCreating] = useState(false)
+  const [creatingFolder, setCreatingFolder] = useState(false)
+  useEffect(() => {
+    const open = () => setCreating(true)
+    window.addEventListener(CREATE_TABLE_EVENT, open)
+    return () => window.removeEventListener(CREATE_TABLE_EVENT, open)
+  }, [])
   const [name, setName] = useState('')
   const [passwordProtected, setPasswordProtected] = useState(false)
   const [password, setPassword] = useState('')
@@ -158,9 +167,10 @@ export function SheetTabs({
         addDisabled={atSheetLimit}
         addTitle={atSheetLimit ? `ლიმიტი: ${limits?.max_sheets} ცხრილი (უფასო გეგმა)` : 'ცხრილის დამატება'}
         onAdd={() => setCreating(true)}
+        onAddFolder={() => setCreatingFolder(true)}
       >
         <div className="sheet-nav-list">
-          {visible.map((sheet) => (
+          <FolderTree type="tables" items={visible} renderItem={(sheet) => (
             <div
               key={sheet.id}
               className={`sheet-nav-item ${sheet.id === activeId ? 'active' : ''}`}
@@ -202,6 +212,7 @@ export function SheetTabs({
                 </button>
               )}
               <div className="sheet-nav-actions">
+                <ItemOrganizationMenu type="tables" item={sheet} />
                 <button
                   type="button"
                   className="btn-icon sheet-action"
@@ -227,7 +238,7 @@ export function SheetTabs({
                 </button>
               </div>
             </div>
-          ))}
+          )} />
         </div>
 
         {needsCollapse && (
@@ -240,6 +251,8 @@ export function SheetTabs({
           </button>
         )}
       </SidebarSection>
+
+      {creatingFolder && <FolderDialog type="tables" onClose={() => setCreatingFolder(false)} />}
 
       {creating &&
         createPortal(
