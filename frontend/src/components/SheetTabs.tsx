@@ -1,4 +1,4 @@
-import { FileSpreadsheet, Lock, Pencil, Trash2, X } from 'lucide-react'
+import { Copy, FileSpreadsheet, Lock, Pencil, Trash2, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import {
@@ -12,7 +12,7 @@ import { FolderTree, ItemOrganizationMenu } from '@/components/FolderTree'
 import { CREATE_TABLE_EVENT, folderPath, useFolders, type CreateItemEventDetail } from '@/hooks/useFolders'
 import { UnlockModal } from '@/components/UnlockModal'
 import { useMe } from '@/hooks/useAuth'
-import { useCreateSheet, useDeleteSheet, useUpdateSheet } from '@/hooks/useLedger'
+import { useCreateSheet, useDeleteSheet, useDuplicateSheet, useUnlockSheet, useUpdateSheet } from '@/hooks/useLedger'
 import { useSheetsSidebarLimit } from '@/hooks/useSidebarListLimits'
 import { ApiError } from '@/lib/api'
 import type { Sheet, SheetKind } from '@/lib/types'
@@ -47,6 +47,8 @@ export function SheetTabs({
   const createSheet = useCreateSheet()
   const updateSheet = useUpdateSheet()
   const deleteSheet = useDeleteSheet()
+  const duplicateSheet = useDuplicateSheet()
+  const unlockSheet = useUnlockSheet()
   const limit = useSheetsSidebarLimit(userId)
   const [creating, setCreating] = useState(false)
   const [creationFolderId, setCreationFolderId] = useState<number | null>(null)
@@ -70,6 +72,8 @@ export function SheetTabs({
   const [renameValue, setRenameValue] = useState('')
   const [expanded, setExpanded] = useState(false)
   const [pendingDelete, setPendingDelete] = useState<Sheet | null>(null)
+  const [pendingDuplicate, setPendingDuplicate] = useState<Sheet | null>(null)
+  const [duplicateError, setDuplicateError] = useState<string | null>(null)
 
   const limits = me.data?.limits
   const ownedCount = sheets.filter((s) => s.is_owner !== false).length
@@ -164,6 +168,16 @@ export function SheetTabs({
     }
   }
 
+  async function duplicate(sheet: Sheet) {
+    setDuplicateError(null)
+    try {
+      const copy = await duplicateSheet.mutateAsync(sheet.id)
+      onSelect(copy.id)
+    } catch (err) {
+      setDuplicateError(apiErrorMessage(err))
+    }
+  }
+
   return (
     <div className="sheet-nav sidebar-module">
       <SidebarSection
@@ -221,6 +235,22 @@ export function SheetTabs({
               )}
               <div className="sheet-nav-actions">
                 <ItemOrganizationMenu type="tables" item={sheet} />
+                {sheet.is_owner !== false && (
+                  <button
+                    type="button"
+                    className="btn-icon sheet-action"
+                    title={atSheetLimit ? `ლიმიტი: ${limits?.max_sheets} ცხრილი (უფასო გეგმა)` : 'კოპირება'}
+                    aria-label={`ცხრილის კოპირება: ${sheet.name}`}
+                    disabled={atSheetLimit || duplicateSheet.isPending || pendingDuplicate !== null}
+                    onClick={() => {
+                      setDuplicateError(null)
+                      if (sheet.is_locked && !sheet.is_unlocked) setPendingDuplicate(sheet)
+                      else void duplicate(sheet)
+                    }}
+                  >
+                    <Copy size={14} />
+                  </button>
+                )}
                 <button
                   type="button"
                   className="btn-icon sheet-action"
@@ -248,6 +278,8 @@ export function SheetTabs({
             </div>
           )} />
         </div>
+
+        {duplicateError && <p className="error" role="alert">{duplicateError}</p>}
 
         {needsCollapse && (
           <button
@@ -318,6 +350,25 @@ export function SheetTabs({
           </div>,
           document.body,
         )}
+
+      {pendingDuplicate && (
+        <UnlockModal
+          title={pendingDuplicate.name}
+          kindLabel="ცხრილის კოპირება"
+          hint="დაცული ცხრილის კოპირებისთვის შეიყვანე პაროლი"
+          submitLabel="კოპირება"
+          busyLabel="კოპირდება…"
+          busy={unlockSheet.isPending || duplicateSheet.isPending}
+          onClose={() => setPendingDuplicate(null)}
+          onSubmit={async (password) => {
+            const source = pendingDuplicate
+            await unlockSheet.mutateAsync({ id: source.id, password })
+            const copy = await duplicateSheet.mutateAsync(source.id)
+            setPendingDuplicate(null)
+            onSelect(copy.id)
+          }}
+        />
+      )}
 
       {pendingDelete && (
         <UnlockModal

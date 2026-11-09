@@ -299,6 +299,21 @@ export function useCreateSheet() {
   })
 }
 
+export function useDuplicateSheet() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (id: number) =>
+      unwrapData(await api<{ data: Sheet }>(`/api/sheets/${id}/duplicate`, { method: 'POST' })),
+    onSuccess: (sheet) => {
+      queryClient.setQueryData<Sheet[]>(['sheets'], (previous) => [...(previous ?? []), sheet])
+      void queryClient.invalidateQueries({ queryKey: ['sheets'] })
+      void queryClient.invalidateQueries({ queryKey: ['me'] })
+      void queryClient.invalidateQueries({ queryKey: ['month'] })
+      void queryClient.invalidateQueries({ queryKey: ['accounts'] })
+    },
+  })
+}
+
 export function useUnlockSheet() {
   const queryClient = useQueryClient()
   return useMutation({

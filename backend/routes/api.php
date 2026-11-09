@@ -54,6 +54,7 @@ Route::middleware(['auth:sanctum', 'not.blocked'])->group(function () {
     Route::apiResource('accounts', AccountController::class)->except(['show']);
     Route::apiResource('categories', CategoryController::class)->except(['show']);
     Route::apiResource('sheets', SheetController::class)->except(['show']);
+    Route::post('/sheets/{sheet}/duplicate', [SheetController::class, 'duplicate']);
     Route::post('/sheets/{sheet}/rollover', [SheetController::class, 'rollover']);
     Route::post('/sheets/{sheet}/unlock', [SheetController::class, 'unlock']);
     Route::post('/sheets/{sheet}/lock', [SheetController::class, 'lock']);

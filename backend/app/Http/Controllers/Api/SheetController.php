@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Actions\DuplicateSheet;
 use App\Actions\RolloverSheetRows;
 use App\Actions\SeedSheetDefaults;
 use App\Http\Controllers\Controller;
@@ -85,6 +86,17 @@ class SheetController extends Controller
         });
 
         return (new SheetResource($sheet))->response()->setStatusCode(201);
+    }
+
+    public function duplicate(Request $request, Sheet $sheet, DuplicateSheet $duplicate): JsonResponse
+    {
+        $this->authorize('duplicate', $sheet);
+        ResourceUnlock::abortUnlessSheetUnlocked($sheet);
+
+        $copy = $duplicate->handle($request->user(), $sheet);
+        ResourceUnlock::unlockSheet($copy);
+
+        return (new SheetResource($copy))->response()->setStatusCode(201);
     }
 
     public function update(Request $request, Sheet $sheet): SheetResource

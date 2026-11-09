@@ -186,4 +186,112 @@ class WorkspaceLifecycleTest extends TestCase
         $this->assertDatabaseMissing('sessions', ['id' => 'old-user-session']);
         $this->assertNotSame($remember, $this->owner->fresh()->remember_token);
     }
+
+    public function test_sheet_duplicate_preserves_all_months_columns_and_settings_independently(): void
+    {
+        Schema::create('custom_columns', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('sheet_id');
+            $table->string('name');
+            $table->string('slug');
+            $table->string('type');
+            $table->json('options')->nullable();
+            $table->string('formula')->nullable();
+            $table->string('role')->nullable();
+            $table->boolean('summable')->default(false);
+            $table->integer('position')->default(0);
+            $table->timestamps();
+            $table->unique(['sheet_id', 'slug']);
+        });
+        Schema::create('sheet_rows', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('sheet_id');
+            $table->string('title')->nullable();
+            $table->json('values');
+            $table->text('notes')->nullable();
+            $table->string('year_month')->nullable();
+            $table->integer('position')->default(0);
+            $table->timestamp('reminder_at')->nullable();
+            $table->timestamp('reminder_sent_at')->nullable();
+            $table->timestamps();
+        });
+        Schema::create('transactions', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('sheet_id');
+            $table->unsignedBigInteger('template_id')->nullable();
+            $table->string('title');
+            $table->string('year_month');
+            $table->timestamps();
+            $table->unique(['template_id', 'year_month']);
+        });
+
+        $folder = Folder::create(['user_id' => $this->owner->id, 'name' => 'ცხრილები', 'type' => 'tables']);
+        $source = $this->owner->sheets()->create([
+            'name' => 'ხარჯები', 'slug' => 'expenses', 'kind' => 'monthly_expenses',
+            'folder_id' => $folder->id, 'budget' => '1500.00', 'position' => 4,
+            'is_pinned' => true, 'is_default' => true, 'reminders_enabled' => true,
+            'password_hash' => Hash::make('copy-password'),
+        ]);
+        $column = $source->columns()->create([
+            'user_id' => $this->owner->id, 'name' => 'ჯამი', 'slug' => 'total',
+            'type' => 'formula', 'formula' => '=amount-paid', 'summable' => true,
+            'role' => 'remaining', 'options' => ['ერთი', 'ორი'], 'position' => 3,
+        ]);
+        foreach (['2026-10', '2026-11'] as $month) {
+            $source->rows()->create([
+                'user_id' => $this->owner->id, 'title' => 'ქირა', 'year_month' => $month,
+                'values' => ['amount' => 600, 'paid' => 100], 'notes' => 'შენიშვნა',
+                'position' => 2, 'reminder_at' => '2026-11-20 10:00:00',
+            ]);
+        }
+        $source->transactions()->create([
+            'user_id' => $this->owner->id, 'title' => 'ჩანაწერი', 'year_month' => '2026-11', 'template_id' => 7,
+        ]);
+
+        $this->postJson("/api/sheets/{$source->id}/unlock", ['password' => 'copy-password'])->assertOk();
+        $copyId = $this->postJson("/api/sheets/{$source->id}/duplicate")->assertCreated()
+            ->assertJsonPath('data.name', 'ხარჯები (copy)')->assertJsonPath('data.budget', '1500.00')
+            ->assertJsonPath('data.folder_id', $folder->id)->assertJsonPath('data.kind', 'monthly_expenses')
+            ->assertJsonPath('data.reminders_enabled', true)->assertJsonPath('data.is_default', false)
+            ->assertJsonPath('data.is_locked', true)->assertJsonPath('data.is_unlocked', true)
+            ->assertJsonPath('data.is_pinned', true)->json('data.id');
+        $copy = $this->owner->sheets()->findOrFail($copyId);
+        $this->assertSame(5, $copy->position);
+        $this->assertSame($source->password_hash, $copy->password_hash);
+        $this->assertSame($column->only(['slug', 'formula', 'options', 'role', 'summable', 'position']),
+            $copy->columns()->firstOrFail()->only(['slug', 'formula', 'options', 'role', 'summable', 'position']));
+        $fields = ['title', 'values', 'notes', 'year_month', 'position', 'reminder_at', 'reminder_sent_at'];
+        $this->assertEquals($source->rows()->get()->map->only($fields)->all(), $copy->rows()->get()->map->only($fields)->all());
+        $this->assertNull($copy->transactions()->firstOrFail()->template_id);
+        $this->assertSame('ჩანაწერი', $copy->transactions()->firstOrFail()->title);
+        $copy->rows()->firstOrFail()->update(['values' => ['amount' => 1]]);
+        $this->assertSame(600, $source->rows()->firstOrFail()->values['amount']);
+        $secondId = $this->postJson("/api/sheets/{$source->id}/duplicate")->assertCreated()->json('data.id');
+        $this->assertNotSame($copy->slug, $this->owner->sheets()->findOrFail($secondId)->slug);
+    }
+
+    public function test_duplicate_requires_ownership_unlock_and_available_plan_capacity(): void
+    {
+        $source = $this->owner->sheets()->create([
+            'name' => 'დაცული', 'password_hash' => Hash::make('table-password'),
+        ]);
+        $this->postJson("/api/sheets/{$source->id}/duplicate")->assertStatus(423);
+        $other = User::factory()->create(['plan' => 'pro']);
+        ResourceShare::create([
+            'owner_user_id' => $this->owner->id, 'shareable_type' => 'sheet', 'shareable_id' => $source->id,
+            'email' => $other->email, 'role' => 'moderator', 'status' => 'accepted',
+            'token' => 'duplicate-test-token', 'member_user_id' => $other->id,
+        ]);
+        Sanctum::actingAs($other);
+        $this->postJson("/api/sheets/{$source->id}/duplicate")->assertForbidden();
+        Sanctum::actingAs($this->owner);
+        $this->owner->update(['plan' => 'free']);
+        config(['plans.free.max_sheets' => 1]);
+        $this->postJson("/api/sheets/{$source->id}/unlock", ['password' => 'table-password'])->assertOk();
+        $this->postJson("/api/sheets/{$source->id}/duplicate")->assertForbidden();
+        $this->assertDatabaseCount('sheets', 1);
+    }
 }

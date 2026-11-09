@@ -22,4 +22,9 @@ class SheetPolicy
     {
         return ShareAccess::isOwner($user, $sheet);
     }
+
+    public function duplicate(User $user, Sheet $sheet): bool
+    {
+        return ShareAccess::isOwner($user, $sheet);
+    }
 }
